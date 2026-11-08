@@ -1,8 +1,8 @@
-// turns luna's replies into friendly formatting: headings, lists, bold, links, tables, code,
+// turns bean's replies into friendly formatting: headings, lists, bold, links, tables, code,
 // and special cards: ```agenda (your day / calendar), ```tasks (checklist), ```files (tap to open)
 (function () {
   const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
-  const bridge = () => window.luna || {};
+  const bridge = () => window.bean || {};
 
   function inline(parent, text) {
     // order matters: code, links, bold, italic
@@ -145,5 +145,5 @@
       i++;
     }
   }
-  window.LunaMD = { render };
+  window.BeanMD = { render };
 })();

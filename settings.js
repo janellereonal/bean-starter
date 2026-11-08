@@ -26,7 +26,7 @@
     });
   }
   function names() {
-    const n = P().charName || 'luna';
+    const n = P().charName || 'bean';
     document.querySelectorAll('.cn').forEach((e) => (e.textContent = n));
     $('brandName').textContent = n; $('brandIcon').textContent = P().charIcon || '🦎';
     $('ver').textContent = 'v' + st.version;
@@ -49,7 +49,7 @@
   }
 
   // ---------- appearance ----------
-  const theme = () => ({ mode: 'system', style: 'luna', accent: '#3E7B4F', bubble: '#F6D77A', font: 'default', size: 'normal', ...(P().theme || {}) });
+  const theme = () => ({ mode: 'system', style: 'bean', accent: '#3E7B4F', bubble: '#F6D77A', font: 'default', size: 'normal', ...(P().theme || {}) });
   const setTheme = (patch) => set('theme', { ...theme(), ...patch }).then(paintAppearance);
   function paintAppearance() {
     const th = theme();
@@ -80,7 +80,7 @@
         (c.id !== 'gecko' ? '<div style="margin-top:6px;display:flex;gap:4px;justify-content:center">' + (c.type === 'image' ? '<button class="btn" data-edit style="padding:3px 8px;font-size:12px">edit parts</button>' : '') + '<button class="btn" data-share title="save as one file you can send to a friend" style="padding:3px 8px;font-size:12px">share</button></div>' : '');
       d.onclick = async (e) => {
         if (e.target.closest('.x')) { if (confirm(`delete ${c.name}?`)) { st = await S.charDelete(c.id); renderChars(); } return; }
-        if (e.target.closest('[data-share]')) { const r = await S.charExport(c.id); if (r && r.error) alert(r.error); else if (r && r.ok) alert(`saved ${c.name} as one file (${r.kb} KB). send it to a friend, and they add it in their Luna with + add character. no rescan needed.`); return; }
+        if (e.target.closest('[data-share]')) { const r = await S.charExport(c.id); if (r && r.error) alert(r.error); else if (r && r.ok) alert(`saved ${c.name} as one file (${r.kb} KB). send it to a friend, and they add it in their Bean with + add character. no rescan needed.`); return; }
         if (e.target.closest('[data-edit]')) { openEditor({ id: c.id, name: c.name, dataUrl: c.dataUrl, rig: c.rig, animUrl: c.animUrl, anim: c.anim }); return; }
         st = await S.charUse(c.id); renderChars();
       };
@@ -101,7 +101,7 @@
     const n = (a, w) => (a.length ? `${a.length} ${w}${a.length > 1 ? 's' : ''}` : '');
     return ['head', n(r.eyes, 'eye'), r.mouth ? 'mouth' : '', n(r.ears, 'ear'), n(r.arms, 'arm'), n(r.legs, 'leg'), r.tail ? 'tail' : ''].filter(Boolean).join(', ');
   }
-  const who = () => P().charName || 'luna';
+  const who = () => P().charName || 'bean';
 
   async function addCharacter() {
     const f = await S.charPick();
@@ -413,7 +413,7 @@
     }
   };
   $('waLink').onclick = async () => { $('waLink').disabled = true; paintWa(await S.waLink()); $('waLink').disabled = false; };
-  $('waUnlink').onclick = async () => { if (confirm('unlink luna from your whatsapp?')) paintWa(await S.waUnlink()); };
+  $('waUnlink').onclick = async () => { if (confirm('unlink bean from your whatsapp?')) paintWa(await S.waUnlink()); };
   S.onWa && S.onWa(paintWa);
   S.waState && S.waState().then(paintWa);
   $('bgBrowser').checked = Boolean(P().bgBrowser); $('bgBrowser').onchange = () => set('bgBrowser', $('bgBrowser').checked);

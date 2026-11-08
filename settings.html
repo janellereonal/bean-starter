@@ -9,7 +9,7 @@
 <body>
 <div class="app">
   <aside>
-    <div class="brand"><span id="brandIcon">🦎</span> <span id="brandName">luna</span></div>
+    <div class="brand"><span id="brandIcon">🦎</span> <span id="brandName">bean</span></div>
     <button data-go="welcome">✨ Get started</button>
     <button data-go="general">General</button>
     <button data-go="appearance">Appearance</button>
@@ -27,7 +27,7 @@
   <main>
     <!-- WELCOME: connect everything they already have -->
     <section class="page" id="welcome">
-      <h1>Hi! I'm <span class="cn">luna</span> 👋</h1>
+      <h1>Hi! I'm <span class="cn">bean</span> 👋</h1>
       <p class="lede">Let's hook me up to your Claude so I know you and can work for you. Most of this happens on its own.</p>
       <h2>1 · You</h2>
       <div class="card"><div class="row"><div class="txt"><div class="t">What should I call you?</div></div><input type="text" id="wName" placeholder="your name"></div></div>
@@ -45,7 +45,7 @@
         <div class="row stack"><div class="txt"><div class="t">Bring over your Claude memory</div><div class="d">Opens Claude with the question ready. Press enter, then copy Claude's answer. I'll grab it from your clipboard on my own.</div></div>
           <div class="btns"><button class="btn primary" id="wCopy">Bring my Claude memory</button><span class="pill off" id="wMemP">not yet</span><span class="status" id="wMemS"></span></div>
           <details><summary class="note">or paste it here</summary><textarea id="wPaste" placeholder="paste what Claude wrote"></textarea><div class="btns"><button class="btn" id="wPasteGo">Save</button></div></details></div>
-        <div class="row"><div class="txt"><div class="t">Put me inside the Claude app</div><div class="d" id="wBridgeD">Then in any Claude chat you can say "save everything you remember about me to luna", or "remind me every morning through luna". Restart the Claude app after turning this on.</div></div><label class="toggle"><input type="checkbox" id="wBridge"><span></span></label></div>
+        <div class="row"><div class="txt"><div class="t">Put me inside the Claude app</div><div class="d" id="wBridgeD">Then in any Claude chat you can say "save everything you remember about me to bean", or "remind me every morning through bean". Restart the Claude app after turning this on.</div></div><label class="toggle"><input type="checkbox" id="wBridge"><span></span></label></div>
         <div class="row"><div class="txt"><div class="t">Learn from your past Claude chats</div><div class="d">In Claude: Settings → Privacy → Export data. You'll get an email with a zip. Pick it here and I'll read it.</div></div><button class="btn" id="wExport">Pick the zip</button><span class="pill off" id="wExportP">no</span></div>
       </div>
 
@@ -64,10 +64,10 @@
     <!-- GENERAL: same profile fields as Claude's settings -->
     <section class="page" id="general">
       <h1>General</h1>
-      <p class="lede">The same profile questions Claude asks, so <span class="cn">luna</span> knows you the same way.</p>
+      <p class="lede">The same profile questions Claude asks, so <span class="cn">bean</span> knows you the same way.</p>
       <h2>Profile</h2>
       <div class="card">
-        <div class="row"><div class="txt"><div class="t">What should <span class="cn">luna</span> call you?</div></div><input type="text" id="userName" placeholder="your name"></div>
+        <div class="row"><div class="txt"><div class="t">What should <span class="cn">bean</span> call you?</div></div><input type="text" id="userName" placeholder="your name"></div>
         <div class="row"><div class="txt"><div class="t">What best describes your work?</div></div><input type="text" id="work" placeholder="student, marketing, engineering..."></div>
         <div class="row stack"><div class="txt"><div class="t">Personal preferences</div><div class="d">How you want replies to sound. Paste what you wrote in Claude so both match.</div></div>
           <textarea id="personalPrefs" placeholder="e.g. keep it casual and short. no em dashes."></textarea>
@@ -75,7 +75,7 @@
       </div>
       <h2>Your buddy</h2>
       <div class="card">
-        <div class="row"><div class="txt"><div class="t">Name</div></div><input type="text" id="charName" placeholder="luna"></div>
+        <div class="row"><div class="txt"><div class="t">Name</div></div><input type="text" id="charName" placeholder="bean"></div>
         <div class="row"><div class="txt"><div class="t">Icon</div><div class="d">Shows in the menu bar and chat.</div></div><input type="text" id="charIcon" style="width:70px;text-align:center" maxlength="4"></div>
       </div>
       <h2>Everyday</h2>
@@ -97,7 +97,7 @@
         <div class="seg" id="mode"><button data-v="system">System</button><button data-v="light">Light</button><button data-v="dark">Dark</button></div></div></div>
       <h2>Style</h2>
       <div class="styles" id="styles">
-        <div class="sty" data-v="luna"><div class="mini" style="background:#FFFCF4"><i style="width:60%;background:#F1EBDC"></i><i style="width:45%;margin-left:auto;background:#F6D77A"></i><i style="width:30%;background:#3E7B4F"></i></div><div class="n">Luna (warm)</div></div>
+        <div class="sty" data-v="bean"><div class="mini" style="background:#FFFCF4"><i style="width:60%;background:#F1EBDC"></i><i style="width:45%;margin-left:auto;background:#F6D77A"></i><i style="width:30%;background:#3E7B4F"></i></div><div class="n">Bean (warm)</div></div>
         <div class="sty" data-v="claude"><div class="mini" style="background:#FAF9F5"><i style="width:70%;background:#E5E3DA;height:6px;margin-top:3px"></i><i style="width:45%;margin-left:auto;background:#F0EEE6"></i><i style="width:30%;background:#C96442"></i></div><div class="n">Claude</div></div>
         <div class="sty" data-v="custom"><div class="mini" id="customMini" style="background:#FFFCF4"><i style="width:60%;background:#F1EBDC"></i><i id="cmBubble" style="width:45%;margin-left:auto"></i><i id="cmAccent" style="width:30%"></i></div><div class="n">Custom</div></div>
       </div>
@@ -121,7 +121,7 @@
     <!-- CHARACTER -->
     <section class="page" id="character">
       <h1>Character</h1>
-      <p class="lede">Add a picture or a 3D model. <span class="cn">luna</span> scans it, finds the face, eyes, body, arms and legs, and makes it walk around your screen.</p>
+      <p class="lede">Add a picture or a 3D model. <span class="cn">bean</span> scans it, finds the face, eyes, body, arms and legs, and makes it walk around your screen.</p>
       <div class="grid" id="chars"></div>
       <div id="scanner" class="hidden">
         <h2 id="scanTitle">New character</h2>
@@ -146,7 +146,7 @@
     <!-- BRAIN -->
     <section class="page" id="brain">
       <h1>Brain</h1>
-      <p class="lede">Which AI powers <span class="cn">luna</span>. Your Claude account works with no API key.</p>
+      <p class="lede">Which AI powers <span class="cn">bean</span>. Your Claude account works with no API key.</p>
       <div class="card" id="providers"></div>
       <div class="card hidden" id="provCfg" style="margin-top:12px">
         <div class="row" id="keyRow"><div class="txt"><div class="t">API key</div><div class="d" id="keyHint">Saved in your Mac's keychain.</div></div><input type="password" id="apiKey" placeholder="paste key" style="width:220px"><button class="btn" id="saveKey">Save</button></div>
@@ -163,7 +163,7 @@
     <!-- CONNECTIONS -->
     <section class="page" id="connections">
       <h1>Connections</h1>
-      <p class="lede">Ways <span class="cn">luna</span> does things for you in the background, without typing on your screen.</p>
+      <p class="lede">Ways <span class="cn">bean</span> does things for you in the background, without typing on your screen.</p>
       <h2>WhatsApp</h2>
       <div class="card">
         <div class="row"><div class="txt"><div class="t">WhatsApp</div><div class="d" id="waDesc">Link once and she can send messages and files, read chats and tell you when someone texts, all in the background.</div></div><span class="pill off" id="waPill">not linked</span></div>
@@ -190,7 +190,7 @@
     <!-- MEMORY -->
     <section class="page" id="memory">
       <h1>Memory</h1>
-      <p class="lede">What <span class="cn">luna</span> knows about you. Plain files you can read and edit.</p>
+      <p class="lede">What <span class="cn">bean</span> knows about you. Plain files you can read and edit.</p>
       <div class="card list" id="memList"></div>
       <div class="card hidden" id="memEdit" style="margin-top:12px"><div class="row stack"><b id="memPath"></b><textarea class="code" id="memText"></textarea><div class="btns"><button class="btn primary" id="memSave">Save</button><button class="btn" id="memClose">Close</button><button class="btn danger" id="memDel">Delete file</button></div></div></div>
       <h2>Bring in memory from another AI</h2>
@@ -204,7 +204,7 @@
     <!-- ROUTINES -->
     <section class="page" id="routines">
       <h1>Routines</h1>
-      <p class="lede">Things <span class="cn">luna</span> does on a schedule. You can also just tell her in chat.</p>
+      <p class="lede">Things <span class="cn">bean</span> does on a schedule. You can also just tell her in chat.</p>
       <div class="card list" id="routineList"></div>
       <h2>Add a routine</h2>
       <div class="card">
@@ -219,7 +219,7 @@
     <!-- ACTIVITY -->
     <section class="page" id="activity">
       <h1>Activity</h1>
-      <p class="lede">Every action <span class="cn">luna</span> took, newest first. Risky ones (money, deleting, posting, sharing) always ask you first.</p>
+      <p class="lede">Every action <span class="cn">bean</span> took, newest first. Risky ones (money, deleting, posting, sharing) always ask you first.</p>
       <div class="card"><div class="log" id="actLog"></div></div>
     </section>
 

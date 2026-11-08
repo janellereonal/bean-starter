@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// luna's local checks ("local CI"). run before keeping any change:   node scripts/check.js
+// bean's local checks ("local CI"). run before keeping any change:   node scripts/check.js
 //   1. every .js file parses
 //   2. every .json file is valid
 //   3. every module in lib/ is described in HOW-I-WORK.md (so the map of the code stays true)
@@ -11,7 +11,7 @@ const vm = require('vm');
 const assert = require('assert');
 
 const ROOT = path.join(__dirname, '..');
-const SKIP = new Set(['node_modules', 'me', '.whatsapp', 'browser-profile', 'characters', 'outputs', '.luna-snapshots', '.git', 'skills']);
+const SKIP = new Set(['node_modules', 'me', '.whatsapp', 'browser-profile', 'characters', 'outputs', '.bean-snapshots', '.git', 'skills']);
 const problems = [];
 function walk(rel, out = []) {
   for (const n of fs.readdirSync(path.join(ROOT, rel))) {

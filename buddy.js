@@ -1,4 +1,4 @@
-// desktop side of custom characters: listens for the chosen character and draws it where luna would be
+// desktop side of custom characters: listens for the chosen character and draws it where bean would be
 (function () {
   if (/standalone=1/.test(location.search)) return; // her own window has no character in it
   const stage = document.getElementById('pet'), gecko = document.getElementById('c');
@@ -41,14 +41,14 @@
     setTimeout(() => s.remove(), 1700);
   }
 
-  window.LUNA_BUDDY = {
+  window.BEAN_BUDDY = {
     active: () => Boolean(buddy),
     get floorOnly() { return false; }, // picture characters roam the whole screen too, staying upright
     draw(st) {
       st.scale = scale;
       const now = performance.now();
-      st.talking = (window.LUNA_TALK_UNTIL || 0) > now || Boolean(window.speechSynthesis && window.speechSynthesis.speaking);
-      st.thinking = Boolean(window.LUNA_THINKING);
+      st.talking = (window.BEAN_TALK_UNTIL || 0) > now || Boolean(window.speechSynthesis && window.speechSynthesis.speaking);
+      st.thinking = Boolean(window.BEAN_THINKING);
       if (buddy.kind === '2d') { st.size = 150; st.ax = stage.clientWidth / 2; st.ay = stage.clientHeight / 2 + (st.where === 'wall' ? 60 : 56); }
       buddy.draw(st);
       if (st.mode === 'nap') { zT -= st.dt; if (zT <= 0 && st.modeT > 0.8) { puff('z', '#8a8577'); zT = 1.3; } } else zT = 0;
@@ -57,5 +57,5 @@
     hit: (x, y) => Boolean(buddy && buddy.hit(x, y)),
     headPoint: () => (buddy ? buddy.headPoint() : null)
   };
-  if (window.luna && window.luna.onCharacter) window.luna.onCharacter((c) => setCharacter(c));
+  if (window.bean && window.bean.onCharacter) window.bean.onCharacter((c) => setCharacter(c));
 })();

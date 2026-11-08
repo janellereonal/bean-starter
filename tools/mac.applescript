@@ -1,4 +1,4 @@
--- luna's mac control kit. usage: osascript tools/mac.applescript <action> [args...]
+-- bean's mac control kit. usage: osascript tools/mac.applescript <action> [args...]
 --   open "<App Name>"                  bring an app to the front (opens it if needed)
 --   type "<text>"                      type text into whatever is focused (via clipboard, so emoji work)
 --   key "<key>" ["cmd,shift,option,control"]   press a key: enter, tab, escape, up, down, left, right, delete, space, or a letter

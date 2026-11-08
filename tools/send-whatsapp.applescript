@@ -1,4 +1,4 @@
--- luna's whatsapp helper: opens a chat in the WhatsApp Mac app and types a message.
+-- bean's whatsapp helper: opens a chat in the WhatsApp Mac app and types a message.
 -- usage: osascript tools/send-whatsapp.applescript "<contact name>" "<message>" [draft|send]
 -- "draft" (default) leaves the message typed in the box for you to check; "send" presses enter.
 on run argv

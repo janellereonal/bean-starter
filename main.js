@@ -1,4 +1,4 @@
-// Luna: a personal AI agent that lives on your Mac desktop as a little character.
+// Bean: a personal AI agent that lives on your Mac desktop as a little character.
 // Brain: Claude Code (your Claude login or an Anthropic API key) or any OpenAI-compatible model (lib/agent.js).
 const { app, BrowserWindow, ipcMain, screen, Menu, Tray, powerMonitor, globalShortcut, shell, safeStorage, dialog, nativeTheme, clipboard } = require('electron');
 const connect = require('./lib/connect');
@@ -18,6 +18,8 @@ const { spawn, execFileSync } = require('child_process');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+// she used to be called luna: keep using that app data folder if it's there
+try { const oldData = path.join(app.getPath('appData'), 'luna'); if (fs.existsSync(oldData)) app.setPath('userData', oldData); } catch (_) {}
 
 let win = null;
 let tray = null;
@@ -46,7 +48,7 @@ function findClaude() {
 function createWindow() {
   const wa = screen.getPrimaryDisplay().workArea;
   win = new BrowserWindow({
-    x: wa.x, y: wa.y, width: wa.width, height: wa.height, // full screen, clicks pass through except on luna
+    x: wa.x, y: wa.y, width: wa.width, height: wa.height, // full screen, clicks pass through except on bean
     transparent: true, frame: false, resizable: false, movable: false, hasShadow: false,
     alwaysOnTop: true, skipTaskbar: true, fullscreenable: false, backgroundColor: '#00000000',
     webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, nodeIntegration: false, backgroundThrottling: false }
@@ -82,19 +84,19 @@ function setFullScreen(on) {
 }
 ipcMain.on('fullscreen', (_e, on) => setFullScreen(Boolean(on)));
 // ---------- show / hide / quit ----------
-function showLuna() { clearTimeout(hideTimer); if (win) win.showInactive(); refreshTray(); }
-function hideLuna(ms) {
+function showBean() { clearTimeout(hideTimer); if (win) win.showInactive(); refreshTray(); }
+function hideBean(ms) {
   if (!win) return;
   setFullScreen(false);
   win.hide();
   clearTimeout(hideTimer);
-  if (ms) hideTimer = setTimeout(showLuna, ms);
+  if (ms) hideTimer = setTimeout(showBean, ms);
   refreshTray();
 }
 
 // open at login: a LaunchAgent that starts this folder with this electron
-// (keeps using an existing *.luna.plist from an older install)
-const AGENT = (() => { const d = path.join(os.homedir(), 'Library/LaunchAgents'); try { const f = fs.readdirSync(d).find((x) => /\.luna\.plist$/.test(x)); if (f) return path.join(d, f); } catch (_) {} return path.join(d, 'app.desktop.luna.plist'); })();
+// (keeps using an existing *.bean.plist from an older install)
+const AGENT = (() => { const d = path.join(os.homedir(), 'Library/LaunchAgents'); try { const f = fs.readdirSync(d).find((x) => /\.bean\.plist$/.test(x)); if (f) return path.join(d, f); } catch (_) {} return path.join(d, 'app.desktop.bean.plist'); })();
 function loginOn() { return fs.existsSync(AGENT); }
 function setLogin(on) {
   try {
@@ -114,9 +116,27 @@ function setLogin(on) {
   refreshTray();
 }
 
-// a Luna app in ~/Applications so she shows up in Spotlight / Launchpad
+// one-time move from the old name (luna): login item, Applications shortcut, Claude app tools, Claude Code history
+function migrateFromLuna() {
+  try {
+    const d = path.join(os.homedir(), 'Library/LaunchAgents');
+    const old = fs.readdirSync(d).filter((x) => /\.luna\.plist$/.test(x));
+    for (const f of old) fs.unlinkSync(path.join(d, f));
+    if (old.length) setLogin(true);
+  } catch (_) {}
+  try { const app0 = path.join(os.homedir(), 'Applications/Luna.app'); if (fs.existsSync(app0)) fs.rmSync(app0, { recursive: true, force: true }); } catch (_) {}
+  try { connect.migrateBridge(__dirname, nodeCmd()); } catch (_) {}
+  try {
+    const key = (p) => p.replace(/[^a-zA-Z0-9]/g, '-');
+    const proj = path.join(os.homedir(), '.claude', 'projects');
+    const from = path.join(proj, key(path.join(path.dirname(__dirname), 'luna'))), to = path.join(proj, key(__dirname));
+    if (fs.existsSync(from) && !fs.existsSync(to)) fs.cpSync(from, to, { recursive: true });
+  } catch (_) {}
+}
+
+// a Bean app in ~/Applications so she shows up in Spotlight / Launchpad
 function makeAppShortcut() {
-  const dest = path.join(os.homedir(), 'Applications/Luna.app');
+  const dest = path.join(os.homedir(), 'Applications/Bean.app');
   if (fs.existsSync(dest)) return;
   try {
     fs.mkdirSync(path.dirname(dest), { recursive: true });
@@ -130,19 +150,19 @@ function menuTemplate() {
   return [
     { label: 'settings…', accelerator: 'Cmd+,', click: () => openSettings() },
     { type: 'separator' },
-    visible ? { label: 'hide luna', click: () => hideLuna() } : { label: 'show luna', click: showLuna },
-    { label: 'hide for 1 hour', enabled: Boolean(visible), click: () => hideLuna(60 * 60 * 1000) },
+    visible ? { label: 'hide bean', click: () => hideBean() } : { label: 'show bean', click: showBean },
+    { label: 'hide for 1 hour', enabled: Boolean(visible), click: () => hideBean(60 * 60 * 1000) },
     { label: 'walks on the floor', type: 'radio', checked: prefs.roam === 'floor', click: () => setRoam('floor') },
     { label: 'climbs the screen', type: 'radio', checked: prefs.roam === 'wall', click: () => setRoam('wall') },
     { label: 'does both', type: 'radio', checked: prefs.roam === 'both', click: () => setRoam('both') },
     { type: 'separator' },
     { label: 'read every reply out loud', type: 'checkbox', checked: prefs.autoSpeak, click: (mi) => { prefs.autoSpeak = mi.checked; savePrefs(); send('voice', prefs.autoSpeak); } },
-    { label: 'call luna: option + space', enabled: false },
+    { label: 'call bean: option + space', enabled: false },
     watch ? { label: `stop auto-replying to ${watch.contact}`, click: stopWatch } : { label: 'auto-reply: off', enabled: false },
     { label: `jobs running: ${jobs.size}`, submenu: jobs.size ? [...jobs.entries()].map(([id, j]) => ({ label: `stop "${j.title}"`, click: () => stopJob(id) })) : [{ label: 'none right now', enabled: false }] },
-    { label: `routines: ${(prefs.routines || []).length}`, submenu: (prefs.routines || []).length ? prefs.routines.map((r) => ({ label: `remove "${r.title}" (${r.when})`, click: () => removeRoutine(r.title) })) : [{ label: 'none yet. ask luna to set one up', enabled: false }] },
-    { label: "open luna's work folder", click: () => { try { fs.mkdirSync(OUTPUTS, { recursive: true }); } catch (_) {} shell.openPath(OUTPUTS); } },
-    { label: 'open activity log', click: () => { const f = path.join(__dirname, 'me', 'activity.md'); if (!fs.existsSync(f)) fs.writeFileSync(f, '# everything luna did\n'); shell.openPath(f); } },
+    { label: `routines: ${(prefs.routines || []).length}`, submenu: (prefs.routines || []).length ? prefs.routines.map((r) => ({ label: `remove "${r.title}" (${r.when})`, click: () => removeRoutine(r.title) })) : [{ label: 'none yet. ask bean to set one up', enabled: false }] },
+    { label: "open bean's work folder", click: () => { try { fs.mkdirSync(OUTPUTS, { recursive: true }); } catch (_) {} shell.openPath(OUTPUTS); } },
+    { label: 'open activity log', click: () => { const f = path.join(__dirname, 'me', 'activity.md'); if (!fs.existsSync(f)) fs.writeFileSync(f, '# everything bean did\n'); shell.openPath(f); } },
     { type: 'separator' },
     { label: isTrusted() ? (prefs.trustUntil === -1 ? '⚡ full trust: always' : '⚡ full trust: on for now') : '🛡️ safety checks: on', submenu: [
       { label: 'ask me before risky stuff (recommended)', type: 'radio', checked: !isTrusted(), click: () => setTrust(0) },
@@ -162,23 +182,23 @@ function menuTemplate() {
     { label: 'genius brain (slowest, uses more of your plan)', type: 'radio', checked: prefs.model === 'opus', click: () => setModel('opus') },
     { label: 'refresh connected apps', click: discoverServers },
     { type: 'separator' },
-    { label: 'start luna when i log in', type: 'checkbox', checked: loginOn(), click: (m) => setLogin(m.checked) },
+    { label: 'start bean when i log in', type: 'checkbox', checked: loginOn(), click: (m) => setLogin(m.checked) },
     { type: 'separator' },
-    { label: 'quit luna', click: () => app.quit() }
+    { label: 'quit bean', click: () => app.quit() }
   ];
 }
 function refreshTray() { if (tray) tray.setContextMenu(Menu.buildFromTemplate(menuTemplate())); }
 
-ipcMain.on('hide', () => hideLuna());
+ipcMain.on('hide', () => hideBean());
 ipcMain.on('menu', () => { Menu.buildFromTemplate(menuTemplate()).popup({ window: win }); });
 // ---------- the brain: one warm Claude Code session that streams replies ----------
 // keeping a single `claude -p` process alive skips the startup cost on every message,
 // and streaming shows words as they come in.
-const PREFS = path.join(__dirname, '.luna-prefs.json');
+const PREFS = path.join(__dirname, '.bean-prefs.json');
 let prefs = { model: 'sonnet', servers: null, roam: 'both', proactive: true, pulseMin: 30, recent: [], routinesDone: {}, syncedChars: 0, autoSpeak: false, routines: [], trustUntil: 0,
-  provider: 'claude-code', providers: {}, secrets: {}, userName: '', charName: 'luna', charIcon: '🦎', character: { type: 'gecko' }, charScale: 1,
+  provider: 'claude-code', providers: {}, secrets: {}, userName: '', charName: 'bean', charIcon: '🦎', character: { type: 'gecko' }, charScale: 1,
   quietFrom: 22, quietTo: 4, reminders: null, hotkey: 'Alt+Space', onboarded: false,
-  theme: { mode: 'system', style: 'luna', accent: '#3E7B4F', bubble: '#F6D77A', font: 'default', size: 'normal' }, work: '', personalPrefs: '',
+  theme: { mode: 'system', style: 'bean', accent: '#3E7B4F', bubble: '#F6D77A', font: 'default', size: 'normal' }, work: '', personalPrefs: '',
   effort: 'low', waNotify: 'direct', bgBrowser: false, waPhone: true, improveModel: 'opus' };
 try { prefs = { ...prefs, ...JSON.parse(fs.readFileSync(PREFS, 'utf8')) }; } catch (_) {}
 const savePrefs = () => { try { fs.writeFileSync(PREFS, JSON.stringify(prefs)); } catch (_) {} };
@@ -186,7 +206,7 @@ const savePrefs = () => { try { fs.writeFileSync(PREFS, JSON.stringify(prefs)); 
 if (!Array.isArray(prefs.reminders)) { prefs.reminders = [{ at: '12:30', text: 'lunch break? 🍱' }, { at: '21:30', text: 'wind down soon 💤' }]; savePrefs(); }
 const isClaude = () => prefs.provider === 'claude-code' || prefs.provider === 'anthropic';
 const who = () => prefs.userName || 'the user';
-const charName = () => prefs.charName || 'luna';
+const charName = () => prefs.charName || 'bean';
 
 // api keys are encrypted with the mac keychain (electron safeStorage), never stored as plain text
 function setSecret(name, value) {
@@ -204,10 +224,10 @@ function getSecret(name) {
 let brain = null, buf = '', pending = null, turnTimer = null;
 
 // her connected apps (Gmail, Calendar, Drive, Notion, Slack, n8n...) come from her Claude account.
-// we find their names once, then let luna use them. luna still asks before sending or changing anything (see CLAUDE.md).
+// we find their names once, then let bean use them. bean still asks before sending or changing anything (see CLAUDE.md).
 const SKIP_SERVERS = /remote-devices/i; // claude-in-chrome stays: it's how she reaches Messenger, WhatsApp Web and any site
 function allowedTools() {
-  const base = ['Read', 'Write', 'Edit', 'Glob', 'Grep', 'WebSearch', 'WebFetch', 'mcp__luna', 'mcp__canvas', 'mcp__browser',
+  const base = ['Read', 'Write', 'Edit', 'Glob', 'Grep', 'WebSearch', 'WebFetch', 'mcp__bean', 'mcp__canvas', 'mcp__browser',
     'Bash(osascript tools/send-whatsapp.applescript:*)', 'Bash(osascript tools/mac.applescript:*)',
     'Bash(tools/look.sh)', 'Bash(tools/wa-recent.sh:*)', 'Bash(open -a:*)', 'Bash(open https://:*)', 'Bash(open http://:*)',
     // skills she wrote for herself (skills/<name>/...) and her own check-ups. sentinel still screens every command
@@ -216,7 +236,7 @@ function allowedTools() {
   for (const t of prefs.desktopTools || []) base.push('mcp__' + t.name);
   return [...new Set(base)].join(',');
 }
-// luna's own browser (separate from your chrome, remembers her logins in browser-profile/)
+// bean's own browser (separate from your chrome, remembers her logins in browser-profile/)
 function mcpConfigs() {
   const files = [];
   const canvas = path.join(__dirname, '.mcp.json');
@@ -231,8 +251,8 @@ function mcpConfigs() {
     if (prefs.bgBrowser) bargs.push('--headless');
     fs.writeFileSync(bf, JSON.stringify({ mcpServers: {
       browser: { command: 'npx', args: bargs },
-      // luna's own background tools: whatsapp, imessage, email with attachments, contacts, finding files
-      luna: { command: process.execPath, args: [path.join(__dirname, 'tools', 'luna-mcp.js')], env: { ELECTRON_RUN_AS_NODE: '1' } }
+      // bean's own background tools: whatsapp, imessage, email with attachments, contacts, finding files
+      bean: { command: process.execPath, args: [path.join(__dirname, 'tools', 'bean-mcp.js')], env: { ELECTRON_RUN_AS_NODE: '1' } }
     } }, null, 2));
     files.push(bf);
   } catch (_) {}
@@ -250,7 +270,7 @@ function selfAware() {
 }
 const LOCKED = ['Write(./tools/**)', 'Edit(./tools/**)', 'Write(./main.js)', 'Edit(./main.js)', 'Write(./CLAUDE.md)', 'Edit(./CLAUDE.md)', 'Write(./me/activity.md)', 'Edit(./me/activity.md)'].join(',');
 // ---------- sentinel: fixed safety rules + approve/deny cards + activity log ----------
-// full trust mode: skips approval cards (still logged) and lets luna use any tool, including any terminal command
+// full trust mode: skips approval cards (still logged) and lets bean use any tool, including any terminal command
 const isTrusted = () => prefs.trustUntil === -1 || Date.now() < prefs.trustUntil;
 function setTrust(until) {
   prefs.trustUntil = until; savePrefs();
@@ -275,7 +295,7 @@ const sentinelServer = http.createServer((req, res) => {
     const done = (ok) => { if (!approvals.has(id)) return; approvals.delete(id); clearTimeout(t); res.end(JSON.stringify({ ok })); };
     const t = setTimeout(() => done(false), 120000);
     approvals.set(id, done);
-    if (win && !win.isVisible()) showLuna();
+    if (win && !win.isVisible()) showBean();
     send('approval', { id, summary: j.summary || 'an action', why: j.why || 'needs your ok' });
   });
 });
@@ -350,22 +370,22 @@ function onLine(line) {
   }
 }
 
-// everything luna says goes to the little chat on the desktop and to her full window (if it's open)
+// everything bean says goes to the little chat on the desktop and to her full window (if it's open)
 function send(ch, data) {
-  if (ch === 'nudge' && data && data.text) recordChat({ who: 'luna nudge', text: data.text, actions: data.actions || [] });
+  if (ch === 'nudge' && data && data.text) recordChat({ who: 'bean nudge', text: data.text, actions: data.actions || [] });
   for (const w of [win, chatWin]) if (w && !w.isDestroyed()) w.webContents.send(ch, data);
 }
 // one shared conversation for both places
 let transcript = [];
 function recordChat(m, from) {
-  transcript.push({ who: String(m.who || 'luna'), text: String(m.text || '').slice(0, 20000), actions: m.actions || null });
+  transcript.push({ who: String(m.who || 'bean'), text: String(m.text || '').slice(0, 20000), actions: m.actions || null });
   if (transcript.length > 300) transcript.shift();
   for (const w of [win, chatWin]) if (w && !w.isDestroyed() && w.webContents !== from && !/nudge/.test(m.who)) w.webContents.send('chat:sync', m);
 }
 ipcMain.on('chat:record', (e, m) => recordChat(m, e.sender));
 ipcMain.handle('chat:history', () => transcript);
 
-// green button: luna's own window, full screen (its own space, like any mac app).
+// green button: bean's own window, full screen (its own space, like any mac app).
 // it has the normal mac buttons: red closes it, yellow minimizes it to the dock, green leaves full screen.
 let chatWin = null;
 function openChatWindow(full = true) {
@@ -407,10 +427,10 @@ ipcMain.handle('stop', () => { if (pending) { const keep = (pending.lastText || 
 ipcMain.handle('ask', (_e, text) => {
   const self = String(text).match(/^__self__(\w+)(?::(.*))?$/); // buttons on self-improvement messages
   if (self) return selfAction(self[1], self[2]);
-  return askLuna(text);
+  return askBean(text);
 });
-// one turn with luna. silent = it came from somewhere else (her phone), so don't stream into the desktop bubble
-function askLuna(text, { silent = false } = {}) { return new Promise((resolve) => {
+// one turn with bean. silent = it came from somewhere else (her phone), so don't stream into the desktop bubble
+function askBean(text, { silent = false } = {}) { return new Promise((resolve) => {
   if (pending) { resolve({ ok: false, busy: true, text: 'one sec, still answering!' }); return; }
   if (!isClaude()) {
     pending = { resolve, sawTool: false, text, acc: '', lastText: '', silent };
@@ -485,7 +505,7 @@ function askApproval(summary, why) {
     const id = ++approvalSeq;
     const t = setTimeout(() => { approvals.delete(id); resolve(false); }, 120000);
     approvals.set(id, (ok) => { clearTimeout(t); approvals.delete(id); resolve(ok); });
-    if (win && !win.isVisible()) showLuna();
+    if (win && !win.isVisible()) showBean();
     send('approval', { id, summary, why });
   });
 }
@@ -524,7 +544,7 @@ function setRoam(r) { prefs.roam = r; savePrefs(); send('roam', r); refreshTray(
 function setModel(m) { prefs.model = m; savePrefs(); stopBrain(); startBrain(); refreshTray(); }
 
 // ---------- shared memory with claude ----------
-// every chat is logged to me/chat-log.md; a few times a day luna writes a digest to luna-brain.md in google drive
+// every chat is logged to me/chat-log.md; a few times a day bean writes a digest to bean-brain.md in google drive
 // (claude reads it nightly and writes back what it learned), and pulls claude's notes into me/learned.md.
 const CHATLOG = path.join(__dirname, 'me', 'chat-log.md');
 function logChat(q, a) {
@@ -540,9 +560,9 @@ function brainSync() {
   if (syncing || pending || !claudeBin) return;
   let size = 0; try { size = fs.statSync(CHATLOG).size; } catch (_) {}
   syncing = true; lastSync = Date.now();
-  const prompt = `Background memory sync (read this as Luna, no chatting).
+  const prompt = `Background memory sync (read this as Bean, no chatting).
 1. Read me/chat-log.md starting from character ${prefs.syncedChars} (earlier parts were already synced), plus me/learned.md and notes.md.
-2. Open the Google Drive file "luna-brain.md" (file id ${prefs.brainFileId}). Add short dated lines at the top of its "## from luna" section for anything durable from the new chats: facts about ${who()}, decisions, deadlines, people, plans, things you did for them. Skip small talk and anything already there. Never write tokens or passwords. Then save the file back (same id, text/markdown). You have standing permission to edit this one file without asking.
+2. Open the Google Drive file "bean-brain.md" (file id ${prefs.brainFileId}). Add short dated lines at the top of its "## from bean" section for anything durable from the new chats: facts about ${who()}, decisions, deadlines, people, plans, things you did for them. Skip small talk and anything already there. Never write tokens or passwords. Then save the file back (same id, text/markdown). You have standing permission to edit this one file without asking.
 3. Copy any "## from claude" lines that aren't in me/learned.md yet into me/learned.md.
 Reply with just: done`;
   const args = ['-p', prompt, '--output-format', 'json', '--model', 'sonnet', '--no-session-persistence', '--allowedTools', allowedTools(), '--disallowedTools', LOCKED, ...mcpConfigs()];
@@ -556,7 +576,7 @@ Reply with just: done`;
   });
 }
 
-// ---------- background jobs (big tasks run separately; luna stays free to chat) ----------
+// ---------- background jobs (big tasks run separately; bean stays free to chat) ----------
 const jobs = new Map(); let jobSeq = 0;
 const OUTPUTS = path.join(__dirname, 'outputs');
 function slug(t) { return String(t).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || 'job'; }
@@ -590,7 +610,7 @@ function stopJob(id) { const j = jobs.get(id); if (j) { j.stopped = true; j.canc
 function sendJobs() { sendSettings('jobs', [...jobs.entries()].map(([id, j]) => ({ id, title: j.title, started: j.started }))); }
 ipcMain.on('open-path', (_e, p) => { if (String(p).startsWith(__dirname)) shell.openPath(p); });
 ipcMain.on('open-url', (_e, u) => { if (/^https?:\/\//.test(String(u))) shell.openExternal(String(u)); });
-// files luna mentions open in their normal app; anything that could run code is only shown in Finder
+// files bean mentions open in their normal app; anything that could run code is only shown in Finder
 ipcMain.on('open-file', (_e, f) => {
   const p = path.resolve(String(f).replace(/^~(?=\/|$)/, os.homedir()));
   if (!fs.existsSync(p)) return;
@@ -610,7 +630,7 @@ setInterval(() => {
 }, 30000);
 
 // ---------- whatsapp auto-reply ----------
-// luna starts this by ending a reply with [[watch: <contact> | <minutes> | <how to reply>]] and stops it with [[unwatch]].
+// bean starts this by ending a reply with [[watch: <contact> | <minutes> | <how to reply>]] and stops it with [[unwatch]].
 // every few seconds we read the whatsapp app's local database (no ai, no focus stealing); when the contact sends
 // something new, a quick haiku turn writes the reply and the whatsapp helper sends it.
 let watch = null; // { contact, until, notes, lastId, busy }
@@ -634,7 +654,7 @@ function waRecent(contact, n) {
 }
 async function startWatch(contact, minutes, notes) {
   const msgs = await waRecent(contact, 1);
-  if (!msgs) { send('nudge', { text: "i can't read whatsapp yet huhu. allow luna (Electron/Terminal) in System Settings > Privacy & Security > Full Disk Access, then ask me again", actions: [] }); return; }
+  if (!msgs) { send('nudge', { text: "i can't read whatsapp yet huhu. allow bean (Electron/Terminal) in System Settings > Privacy & Security > Full Disk Access, then ask me again", actions: [] }); return; }
   watch = { contact, until: Date.now() + Math.min(minutes, 240) * 60000, notes, lastId: msgs[0] ? msgs[0].id : 0, busy: false };
   refreshTray();
 }
@@ -670,9 +690,9 @@ Output ONLY the message text (or SKIP).`;
 }
 setInterval(watchTick, 6000);
 
-// ---------- proactive luna ----------
+// ---------- proactive bean ----------
 // every so often a quick background check (separate from your chat) looks at your calendar, canvas, inbox and slack,
-// and luna pops up only if something actually needs you. quiet from 10pm to 4am.
+// and bean pops up only if something actually needs you. quiet from 10pm to 4am.
 const localNow = () => new Date(); // the mac's own time zone
 const quietHours = () => { const h = new Date().getHours(), a = Number(prefs.quietFrom), b = Number(prefs.quietTo); return a > b ? (h >= a || h < b) : (h >= a && h < b); };
 function stamp() { const n = new Date(), p = (x) => String(x).padStart(2, '0'); return `${n.getFullYear()}-${p(n.getMonth() + 1)}-${p(n.getDate())} ${p(n.getHours())}:${p(n.getMinutes())}`; }
@@ -741,12 +761,12 @@ function characterInfo() {
 function listCharacters() {
   let files = []; try { files = fs.readdirSync(CHARS).filter((f) => /^[\w.-]+\.(png|glb)$/.test(f) && !/\.(thumb|back|anim)\.png$/.test(f) && !f.startsWith('.')); } catch (_) {}
   const thumb = (f) => { const t = path.join(CHARS, f.replace(/\.(png|glb)$/, '.thumb.png')); const src = f.endsWith('.png') ? path.join(CHARS, f) : t; try { return 'data:image/png;base64,' + fs.readFileSync(src).toString('base64'); } catch (_) { return ''; } };
-  return [{ id: 'gecko', name: 'luna (3d gecko)', type: 'gecko' }, ...files.map((f) => ({ id: f, name: f.replace(/\.(png|glb)$/, '').replace(/-/g, ' '), type: f.endsWith('.glb') ? '3d' : 'image', dataUrl: thumb(f), rig: readRig(f), backUrl: null,
+  return [{ id: 'gecko', name: 'bean (3d gecko)', type: 'gecko' }, ...files.map((f) => ({ id: f, name: f.replace(/\.(png|glb)$/, '').replace(/-/g, ' '), type: f.endsWith('.glb') ? '3d' : 'image', dataUrl: thumb(f), rig: readRig(f), backUrl: null,
     anim: (() => { try { return JSON.parse(fs.readFileSync(path.join(CHARS, f.replace(/\.png$/, '.anim.json')), 'utf8')); } catch (_) { return null; } })(),
     animUrl: (() => { try { return 'data:image/png;base64,' + fs.readFileSync(path.join(CHARS, f.replace(/\.png$/, '.anim.png'))).toString('base64'); } catch (_) { return null; } })() }))];
 }
 
-// luna looks at a character picture and finds its face, eyes, mouth, body, arms, legs, ears and tail.
+// bean looks at a character picture and finds its face, eyes, mouth, body, arms, legs, ears and tail.
 // pass 1 measures on a grid; pass 2 looks at her own markings drawn on the picture and corrects them.
 const SCAN_FORMAT = `{"kind":"quadruped|biped|bird|fish|blob|other","facing":"left|right|front",
 "body":{"x":0,"y":0,"w":0,"h":0},
@@ -817,7 +837,7 @@ async function scanCharacter(pngDataUrl, prevRig) {
   return scanToRig(parseJson(out));
 }
 
-// ---------- whatsapp in the background + local api for luna's tools ----------
+// ---------- whatsapp in the background + local api for bean's tools ----------
 const WA_DIR = path.join(__dirname, '.whatsapp');
 let waQrImage = null;
 const waLastNotice = new Map();
@@ -828,7 +848,7 @@ const wa = createWA({
   onStatus: () => { if (wa && wa.state().status === 'connected') waQrImage = null; sendSettings('wa', waState()); },
   onSelf: (m) => onPhone(m),
   onMessage: (m) => {
-    // a new message for you: luna taps you (direct chats, or groups when you're mentioned)
+    // a new message for you: bean taps you (direct chats, or groups when you're mentioned)
     const mode = prefs.waNotify || 'direct';
     if (mode === 'off' || quietHours() || !win || !win.isVisible()) return;
     if (m.group && !(mode === 'all' || m.mentionsMe)) return;
@@ -842,7 +862,7 @@ const wa = createWA({
 });
 function waState() { const s = wa.state(); return { ...s, qrImage: s.status === 'needs-scan' ? waQrImage : null, linked: wa.linked(), notify: prefs.waNotify || 'direct', phone: prefs.waPhone !== false }; }
 
-// ---------- luna on your phone: message yourself on whatsapp, she answers there (see lib/phone.js) ----------
+// ---------- bean on your phone: message yourself on whatsapp, she answers there (see lib/phone.js) ----------
 let phoneActions = [], phoneQueue = [], phoneBusy = false;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 function onPhone(m) {
@@ -864,11 +884,11 @@ async function drainPhone() {
     const prompt = `(from ${who()}'s phone, on WhatsApp. They're away from the Mac: keep it short and plain, no cards or tables.)\n${text}`;
     wa.typing(m.chat, true);
     let res = { ok: false, text: '' };
-    for (let i = 0; i < 80; i++) { res = await askLuna(prompt, { silent: true }); if (!res.busy) break; await sleep(3000); } // wait for a desktop answer to finish
+    for (let i = 0; i < 80; i++) { res = await askBean(prompt, { silent: true }); if (!res.busy) break; await sleep(3000); } // wait for a desktop answer to finish
     wa.typing(m.chat, false);
     const plain = toPlain(res.text || '');
     phoneActions = plain.actions;
-    recordChat({ who: 'luna', text: res.text || '' });
+    recordChat({ who: 'bean', text: res.text || '' });
     try { await wa.sendSelf(m.chat, plain.text || (res.ok ? 'done ✓' : 'my brain hiccuped, try again?')); } catch (e) { logActivity('phone reply failed: ' + e.message); }
   }
   phoneBusy = false;
@@ -891,9 +911,9 @@ ipcMain.handle('wa:link', async () => { await wa.start(); return waState(); });
 ipcMain.handle('wa:unlink', async () => { await wa.unlink(); return waState(); });
 
 const API_TOKEN = crypto.randomBytes(18).toString('hex');
-const lunaApi = http.createServer((req, res) => {
+const beanApi = http.createServer((req, res) => {
   const done = (ok, result, error) => { res.writeHead(200, { 'content-type': 'application/json' }); res.end(JSON.stringify({ ok, result, error })); };
-  if (req.method !== 'POST' || req.headers['x-luna'] !== API_TOKEN) { res.writeHead(403); res.end(); return; }
+  if (req.method !== 'POST' || req.headers['x-bean'] !== API_TOKEN) { res.writeHead(403); res.end(); return; }
   let body = ''; req.on('data', (d) => { body += d; if (body.length > 2e6) req.destroy(); });
   req.on('end', async () => {
     let a = {}; try { a = JSON.parse(body || '{}'); } catch (_) {}
@@ -913,8 +933,8 @@ const lunaApi = http.createServer((req, res) => {
     } catch (e) { done(false, null, e.message); }
   });
 });
-lunaApi.listen(0, '127.0.0.1', () => {
-  try { fs.writeFileSync(path.join(__dirname, 'tools', '.luna-api.json'), JSON.stringify({ port: lunaApi.address().port, token: API_TOKEN }), { mode: 0o600 }); } catch (_) {}
+beanApi.listen(0, '127.0.0.1', () => {
+  try { fs.writeFileSync(path.join(__dirname, 'tools', '.bean-api.json'), JSON.stringify({ port: beanApi.address().port, token: API_TOKEN }), { mode: 0o600 }); } catch (_) {}
 });
 
 // ---------- connecting to everything they already have ----------
@@ -927,20 +947,20 @@ function saveFromClaude(text, title, mode) {
   if (mode === 'append' && fs.existsSync(f)) fs.appendFileSync(f, '\n' + block);
   else fs.writeFileSync(f, `# what Claude remembers about ${who()} (brought over from their Claude account)\n\n${block}`);
   logActivity('memory from Claude saved (' + text.length + ' chars)');
-  return `saved to luna's memory (${text.length} characters)`;
+  return `saved to bean's memory (${text.length} characters)`;
 }
 function readAllMemory() {
   let out = '';
   try { for (const f of fs.readdirSync(path.join(__dirname, 'me')).filter((x) => x.endsWith('.md') && !/activity|chat-log/.test(x))) out += `\n## me/${f}\n` + fs.readFileSync(path.join(__dirname, 'me', f), 'utf8').slice(0, 8000); } catch (_) {}
   return out.slice(0, 40000) || '(nothing yet)';
 }
-// how luna's own tool server runs inside the Claude app too (node from electron itself)
+// how bean's own tool server runs inside the Claude app too (node from electron itself)
 const nodeCmd = () => ({ command: process.execPath, env: { ELECTRON_RUN_AS_NODE: '1' } });
 async function connectEverything() {
   if (!claudeBin) claudeBin = findClaude();
   claudeState = await connect.claudeStatus(claudeBin, baseEnv());
   const canvasOwn = fs.existsSync(path.join(__dirname, '.mcp.json'));
-  prefs.desktopTools = connect.importDesktopTools(path.join(__dirname, 'tools', 'desktop-mcp.json'), ['luna', ...(canvasOwn ? ['canvas', 'canvas-mcp'] : [])]);
+  prefs.desktopTools = connect.importDesktopTools(path.join(__dirname, 'tools', 'desktop-mcp.json'), ['bean', ...(canvasOwn ? ['canvas', 'canvas-mcp'] : [])]);
   const mem = claudeState.installed ? connect.syncClaudeCodeMemory(__dirname, claudeState) : { chars: 0 };
   prefs.ccMemoryChars = mem.chars; savePrefs();
   sendSettings('setup', setupState());
@@ -992,7 +1012,7 @@ function applyTheme() {
 // ---------- hotkey ----------
 function registerHotkey() {
   try { globalShortcut.unregisterAll(); } catch (_) {}
-  try { globalShortcut.register(prefs.hotkey || 'Alt+Space', () => { showLuna(); app.focus({ steal: true }); if (win) win.focus(); send('summon', true); }); } catch (_) {}
+  try { globalShortcut.register(prefs.hotkey || 'Alt+Space', () => { showBean(); app.focus({ steal: true }); if (win) win.focus(); send('summon', true); }); } catch (_) {}
 }
 
 // ---------- settings window (claude-style) ----------
@@ -1092,11 +1112,12 @@ ipcMain.handle('checkin:now', () => { pulse(true); return true; });
 ipcMain.handle('activity:get', () => { try { return fs.readFileSync(path.join(__dirname, 'me', 'activity.md'), 'utf8').split('\n').filter(Boolean).slice(-300).reverse(); } catch (_) { return []; } });
 // characters
 ipcMain.handle('char:pick', async () => {
-  const r = await dialog.showOpenDialog(settingsWin, { title: 'Pick a character (a picture, a 3D model, or a shared .lunachar file)', properties: ['openFile'], filters: [{ name: 'Pictures and 3D models', extensions: ['png', 'jpg', 'jpeg', 'webp', 'gif', 'glb', 'vrm', 'lunachar'] }] });
+  const r = await dialog.showOpenDialog(settingsWin, { title: 'Pick a character (a picture, a 3D model, or a shared .beanchar file)', properties: ['openFile'], filters: [{ name: 'Pictures and 3D models', extensions: ['png', 'jpg', 'jpeg', 'webp', 'gif', 'glb', 'vrm', 'beanchar', 'lunachar'] }] });
   if (r.canceled || !r.filePaths[0]) return null;
   const f = r.filePaths[0]; const ext = path.extname(f).slice(1).toLowerCase().replace('jpg', 'jpeg');
   const name = path.basename(f).replace(/\.[^.]+$/, '');
-  if (ext === PACK_EXT) { try { const n = importCharacter(f); return { kind: 'imported', name: n, state: settingsState() }; } catch (e) { return { error: e.message }; } }
+  // .lunachar: characters shared before the rename
+  if (ext === PACK_EXT || ext === 'lunachar') { try { const n = importCharacter(f); return { kind: 'imported', name: n, state: settingsState() }; } catch (e) { return { error: e.message }; } }
   if (ext === 'glb' || ext === 'vrm') {
     if (fs.statSync(f).size > 60 * 1024 * 1024) return { error: 'that model is over 60 MB. try a lighter version (under 20 MB works best).' };
     return { name, kind: '3d', glb: fs.readFileSync(f).toString('base64') };
@@ -1151,7 +1172,7 @@ ipcMain.handle('char:delete', (_e, id) => {
   }
   return settingsState();
 });
-// share a character: one small .lunachar file (picture + scan + animation), see lib/charpack.js
+// share a character: one small .beanchar file (picture + scan + animation), see lib/charpack.js
 const PACK_EXT = charpack.EXT;
 function importCharacter(file) {
   const r = charpack.importPack(CHARS, file);
@@ -1169,14 +1190,14 @@ ipcMain.handle('char:rename', (_e, id, name) => {
 ipcMain.handle('char:export', async (_e, id) => {
   try {
     const data = charpack.exportPack(CHARS, id);
-    const r = await dialog.showSaveDialog(settingsWin, { title: 'Share this character', defaultPath: path.join(app.getPath('desktop'), id.replace(/\.(png|glb)$/, '') + '.' + PACK_EXT), filters: [{ name: 'Luna character', extensions: [PACK_EXT] }] });
+    const r = await dialog.showSaveDialog(settingsWin, { title: 'Share this character', defaultPath: path.join(app.getPath('desktop'), id.replace(/\.(png|glb)$/, '') + '.' + PACK_EXT), filters: [{ name: 'Bean character', extensions: [PACK_EXT] }] });
     if (r.canceled || !r.filePath) return { ok: false };
     fs.writeFileSync(r.filePath, data); shell.showItemInFolder(r.filePath);
     return { ok: true, file: r.filePath, kb: Math.round(Buffer.byteLength(data) / 1024) };
   } catch (e) { return { ok: false, error: e.message }; }
 });
 
-// ---------- luna improving herself: agentic engineering with a safety net (see lib/improve.js) ----------
+// ---------- bean improving herself: agentic engineering with a safety net (see lib/improve.js) ----------
 let improving = null;
 function runChecks() {
   return new Promise((resolve) => {
@@ -1195,7 +1216,7 @@ async function startImprove(title, details) {
   if (!claudeBin) return;
   improving = { title }; refreshTray();
   const finish = (text, actions = []) => { improving = null; refreshTray(); send('nudge', { text, actions }); };
-  // an approval card every time (unless full trust mode is on): a message or web page alone can't make luna rewrite herself
+  // an approval card every time (unless full trust mode is on): a message or web page alone can't make bean rewrite herself
   const ok = await askApproval(`change my own code: ${title}`, 'self-improvement. i save a snapshot first, test the change, and you can undo it in one tap');
   if (!ok) return finish(`ok, i won't change "${title}"`);
   let snap; try { snap = improve.snapshot(__dirname, title); } catch (e) { return finish(`couldn't save a snapshot first (${e.message}), so i didn't touch anything`); }
@@ -1257,12 +1278,12 @@ function selfAction(cmd, arg) {
 // ---------- safety check-up (see lib/doctor.js) ----------
 function runDoctor(show) {
   const fixed = doctor.fix(__dirname);
-  const r = doctor.audit(__dirname, prefs, { apiHost: (lunaApi.address() || {}).address, sentinelHook: fs.existsSync(path.join(__dirname, 'tools', 'sentinel-settings.json')) });
+  const r = doctor.audit(__dirname, prefs, { apiHost: (beanApi.address() || {}).address, sentinelHook: fs.existsSync(path.join(__dirname, 'tools', 'sentinel-settings.json')) });
   const text = doctor.report(r) + (fixed.length ? `\n✓ tightened permissions on: ${fixed.join(', ')}` : '');
   if (show) send('nudge', { text, actions: [] });
   return text;
 }
-ipcMain.handle('doctor:run', () => { const fixed = doctor.fix(__dirname); return { ...doctor.audit(__dirname, prefs, { apiHost: (lunaApi.address() || {}).address, sentinelHook: fs.existsSync(path.join(__dirname, 'tools', 'sentinel-settings.json')) }), fixed }; });
+ipcMain.handle('doctor:run', () => { const fixed = doctor.fix(__dirname); return { ...doctor.audit(__dirname, prefs, { apiHost: (beanApi.address() || {}).address, sentinelHook: fs.existsSync(path.join(__dirname, 'tools', 'sentinel-settings.json')) }), fixed }; });
 
 // ---------- her soul: personality and values she can grow (me/soul.md, from templates/soul.md) ----------
 function ensureSoul() {
@@ -1281,8 +1302,8 @@ ipcMain.handle('open:pane', (_e, pane) => {
   return true;
 });
 ipcMain.handle('app:action', (_e, what) => {
-  if (what === 'hide') hideLuna();
-  if (what === 'show') showLuna();
+  if (what === 'hide') hideBean();
+  if (what === 'show') showBean();
   if (what === 'quit') app.quit();
   if (what === 'newchat') { stopBrain(); sessionId = null; agentHistory = []; }
   if (what === 'discover') discoverServers();
@@ -1291,7 +1312,7 @@ ipcMain.handle('app:action', (_e, what) => {
 
 if (process.platform === 'darwin' && app.dock) app.dock.hide();
 if (!app.requestSingleInstanceLock()) app.quit();
-app.on('second-instance', showLuna); // opening Luna again just brings her back
+app.on('second-instance', showBean); // opening Bean again just brings her back
 
 app.whenReady().then(() => {
   try { fs.writeFileSync(path.join(__dirname, 'tools', '.sentinel-trust'), String(prefs.trustUntil || 0)); } catch (_) {}
@@ -1299,23 +1320,24 @@ app.whenReady().then(() => {
   createWindow();
   tray = new Tray(require('electron').nativeImage.createEmpty());
   tray.setTitle(prefs.charIcon || '🦎');
-  tray.setToolTip('luna');
+  tray.setToolTip('bean');
   refreshTray();
+  migrateFromLuna();
   makeAppShortcut();
   startBrain();
   writeIdentity();
   ensureSoul();
   applyTheme();
-  if (wa.linked()) wa.start(); // reconnect luna's whatsapp line
+  if (wa.linked()) wa.start(); // reconnect bean's whatsapp line
   connectEverything().catch(() => {}); // their Claude login, Claude app tools and Claude Code memory
   nativeTheme.on('updated', () => sendSettings('theme', prefs.theme));
   if (!prefs.onboarded) openSettings('welcome');
-  // option + space from anywhere: luna comes to you with the chat open, ready for typing or dictation
+  // option + space from anywhere: bean comes to you with the chat open, ready for typing or dictation
   registerHotkey();
-  if (isClaude()) discoverServers(); // find connected apps (Gmail, Calendar, Notion, Slack...) and let luna use them
+  if (isClaude()) discoverServers(); // find connected apps (Gmail, Calendar, Notion, Slack...) and let bean use them
   lastPulse = Date.now() - prefs.pulseMin * 60000 + 3 * 60000; // first check-in ~3 min after launch
   lastSync = Date.now() - 3 * 3600000 + 10 * 60000; // first memory sync ~10 min after launch
-  // welcome back: when you unlock your mac, luna checks if anything happened while you were away
+  // welcome back: when you unlock your mac, bean checks if anything happened while you were away
   powerMonitor.on('unlock-screen', () => { lastPulse = 0; setTimeout(() => pulse(false), 4000); });
 });
 app.on('before-quit', () => { stopBrain(); wa.stop(); });

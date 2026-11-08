@@ -1,6 +1,6 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
-contextBridge.exposeInMainWorld('luna', {
+contextBridge.exposeInMainWorld('bean', {
   ask: (text) => ipcRenderer.invoke('ask', text),
   reset: () => ipcRenderer.invoke('reset'),
   setInteractive: (on) => ipcRenderer.send('interactive', on),

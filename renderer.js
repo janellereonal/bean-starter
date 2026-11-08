@@ -428,7 +428,7 @@
     setMode(b.dataset.move);
     if (b.dataset.move === 'nap') say('nap time... zzz', 2.2);
   }));
-  // ---------- where luna is on screen ----------
+  // ---------- where bean is on screen ----------
   // where 'floor': side view, strolling along the bottom of the screen.
   // where 'wall' : top-down view, stuck to your screen like a house gecko, crawling any direction.
   const HALF = 220;
@@ -450,7 +450,7 @@
   function climbUp() { where = 'wall'; heading = Math.PI + (Math.random() - 0.5) * 0.4; cy = floorCY() - 30; wanderT = 1.5; }
   const ray = new THREE.Raycaster(), ptr = new THREE.Vector2();
   function hit(e) {
-    if (window.LUNA_BUDDY && window.LUNA_BUDDY.active()) return window.LUNA_BUDDY.hit(e.clientX, e.clientY);
+    if (window.BEAN_BUDDY && window.BEAN_BUDDY.active()) return window.BEAN_BUDDY.hit(e.clientX, e.clientY);
     const r = canvas.getBoundingClientRect();
     ptr.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
     ray.setFromCamera(ptr, camera);
@@ -469,16 +469,16 @@
   });
   canvas.addEventListener('pointerdown', (e) => {
     if (!hit(e)) return;
-    if (e.button === 2) { window.dispatchEvent(new CustomEvent('luna-menu')); return; }
+    if (e.button === 2) { window.dispatchEvent(new CustomEvent('bean-menu')); return; }
     press = { x: e.clientX, y: e.clientY, cx0: cx, cy0: cy, moved: false };
-    window.LUNA_DRAGGING = true;
+    window.BEAN_DRAGGING = true;
     canvas.setPointerCapture(e.pointerId);
     canvas.style.cursor = 'grabbing';
   });
   const release = () => {
     if (!press) return;
     const wasDrag = press.moved;
-    press = null; held = false; window.LUNA_DRAGGING = false;
+    press = null; held = false; window.BEAN_DRAGGING = false;
     canvas.style.cursor = 'grab';
     if (wasDrag) {
       if (roam === 'floor' || (roam !== 'wall' && cy > floorCY() - 90)) { where = 'floor'; placePet(); say('wheee 🦎', 1.6); }
@@ -488,7 +488,7 @@
     const picks = ['happy', 'lick', 'wave'];
     if (mode !== 'walk') setMode(mode === 'nap' ? 'happy' : picks[Math.floor(Math.random() * picks.length)]);
     else setMode('idle');
-    window.dispatchEvent(new CustomEvent('luna-tap'));
+    window.dispatchEvent(new CustomEvent('bean-tap'));
   };
   canvas.addEventListener('pointerup', release);
   canvas.addEventListener('pointercancel', release);
@@ -573,11 +573,11 @@
 
     if (mode === 'idle') {
       idleFor += dt;
-      if (!reduced && !window.LUNA_CHATTING && idleFor > nextStroll) { idleFor = 0; nextStroll = 9 + Math.random() * 7; setMode('walk'); }
+      if (!reduced && !window.BEAN_CHATTING && idleFor > nextStroll) { idleFor = 0; nextStroll = 9 + Math.random() * 7; setMode('walk'); }
     } else idleFor = 0;
 
     // picture characters are drawn from the side, so they stay on the floor (drag them anywhere you like)
-    const floorOnly = Boolean(window.LUNA_BUDDY && window.LUNA_BUDDY.active() && window.LUNA_BUDDY.floorOnly);
+    const floorOnly = Boolean(window.BEAN_BUDDY && window.BEAN_BUDDY.active() && window.BEAN_BUDDY.floorOnly);
     if (floorOnly && where === 'wall' && !held) { where = 'floor'; walkDir = Math.sin(heading) >= 0 ? 1 : -1; placePet(); }
     if (mode === 'walk') {
       swing = 1; tailAmp = 0.04; tailSpeed = 2;
@@ -684,7 +684,7 @@
       bubble.style.top = (((1 - tmp.y) / 2) * stage.clientHeight - 70 * view) + 'px'; // float clear of her head when she's on the wall
     }
     // a custom character (picture or 3d model) borrows her moves and draws itself instead
-    const CB = window.LUNA_BUDDY;
+    const CB = window.BEAN_BUDDY;
     if (CB && CB.active()) {
       CB.draw({ t, dt, mode, modeT, walkGo, gaitPh, where, heading, walkDir, held, eyeOpen: lidOpen });
       if (!bubble.hidden) { const hp = CB.headPoint(); if (hp) { bubble.style.left = hp.x + 'px'; bubble.style.top = (hp.y - 12) + 'px'; } }
@@ -697,7 +697,7 @@
     if (r === 'floor' && where === 'wall') { where = 'floor'; walkDir = Math.sin(heading) >= 0 ? 1 : -1; placePet(); say('back on the floor 🦎', 1.6); }
     if (r === 'wall' && where === 'floor') { climbUp(); say('climbing time 🦎', 1.6); }
   }
-  window.LUNA = { say, setMode, setRoam, hide: () => { bubbleTimer = 0; bubble.hidden = true; }, hitAt: (x, y) => hit({ clientX: x, clientY: y }), get mode() { return mode; } };
+  window.BEAN = { say, setMode, setRoam, hide: () => { bubbleTimer = 0; bubble.hidden = true; }, hitAt: (x, y) => hit({ clientX: x, clientY: y }), get mode() { return mode; } };
   say('hiii! 🦎', 3);
   requestAnimationFrame(tick);
 })();

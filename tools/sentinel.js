@@ -1,8 +1,8 @@
-// sentinel: luna's independent safety checker. claude code runs this before and after every tool luna uses.
+// sentinel: bean's independent safety checker. claude code runs this before and after every tool bean uses.
 // it doesn't ask the ai whether something is risky; it follows fixed rules here.
 //   - reading, searching, drafting, local files: allowed
 //   - messages and normal actions: allowed and logged
-//   - payments, deleting, public posts, sharing files, publishing workflows: the user must tap Approve in luna's chat
+//   - payments, deleting, public posts, sharing files, publishing workflows: the user must tap Approve in bean's chat
 // every action that changes something is written to me/activity.md
 const fs = require('fs');
 const path = require('path');
@@ -96,7 +96,7 @@ function log(line) {
   } catch (_) {}
 }
 
-// ask the user through luna's chat (approve / deny card). no answer in 2 minutes = no.
+// ask the user through bean's chat (approve / deny card). no answer in 2 minutes = no.
 function askUser(summary, why) {
   return new Promise((resolve) => {
     let port;

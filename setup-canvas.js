@@ -1,4 +1,4 @@
-// copies your Canvas MCP server from the Claude desktop app so Luna can check your dues.
+// copies your Canvas MCP server from the Claude desktop app so Bean can check your dues.
 // looks in the app config first, then in installed desktop extensions.
 const fs = require('fs');
 const os = require('os');
@@ -11,7 +11,7 @@ if (fs.existsSync(out) && !force) process.exit(0);
 const base = path.join(os.homedir(), 'Library/Application Support/Claude');
 const save = (server, from) => {
   fs.writeFileSync(out, JSON.stringify({ mcpServers: { canvas: server } }, null, 2));
-  console.log('✓ hooked luna up to your canvas (from ' + from + ')');
+  console.log('✓ hooked bean up to your canvas (from ' + from + ')');
   process.exit(0);
 };
 
@@ -49,4 +49,4 @@ for (const id of dirs) {
   save(server, 'extension "' + (m.display_name || m.name || id) + '"');
 }
 
-console.log('no canvas connection found in the claude app, luna will work without canvas');
+console.log('no canvas connection found in the claude app, bean will work without canvas');

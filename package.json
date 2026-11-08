@@ -1,7 +1,7 @@
 {
-  "name": "luna",
+  "name": "bean",
   "version": "3.1.0",
-  "description": "Luna: a personal AI agent that lives on your Mac desktop as a little character. Runs on your own Claude account, no API key.",
+  "description": "Bean: a personal AI agent that lives on your Mac desktop as a little character. Runs on your own Claude account, no API key.",
   "main": "main.js",
   "private": true,
   "scripts": {

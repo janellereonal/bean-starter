@@ -1,17 +1,17 @@
 const phone = require('../lib/phone');
 const me = { id: '639171234567:12@s.whatsapp.net', lid: '99887766:12@lid' };
 
-test('only your own self-chat counts as talking to luna', () => {
+test('only your own self-chat counts as talking to bean', () => {
   assert.ok(phone.isSelfChat('639171234567@s.whatsapp.net', me));
   assert.ok(phone.isSelfChat('99887766@lid', me));
   assert.ok(!phone.isSelfChat('639170000000@s.whatsapp.net', me));
   assert.ok(!phone.isSelfChat('639171234567-123@g.us', me));
   assert.ok(!phone.isSelfChat('639171234567@s.whatsapp.net', null));
 });
-test('luna ignores her own replies', () => {
-  assert.ok(phone.isLunaEcho('🦎 sent ✓', new Set(), 'x'));
-  assert.ok(phone.isLunaEcho('anything', new Set(['abc']), 'abc'));
-  assert.ok(!phone.isLunaEcho('what is due today', new Set(), 'y'));
+test('bean ignores her own replies', () => {
+  assert.ok(phone.isBeanEcho('🦎 sent ✓', new Set(), 'x'));
+  assert.ok(phone.isBeanEcho('anything', new Set(['abc']), 'abc'));
+  assert.ok(!phone.isBeanEcho('what is due today', new Set(), 'y'));
 });
 test('replying with a number runs that option', () => {
   const acts = [{ label: 'a', prompt: 'do a' }, { label: 'b', prompt: 'do b' }];

@@ -3,29 +3,29 @@
 <head>
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:">
-<title>Luna</title>
+<title>Bean</title>
 <style>
-  /* themes: luna (warm) or claude-style, each in light and dark. dark follows the mac unless set in settings. */
+  /* themes: bean (warm) or claude-style, each in light and dark. dark follows the mac unless set in settings. */
   :root {
-    --card: #FFFCF4; --fg: #2B2A22; --muted: #7A7462; --line: #EADFC4; --me: #F6D77A; --luna: #F1EBDC; --accent: #3E7B4F;
+    --card: #FFFCF4; --fg: #2B2A22; --muted: #7A7462; --line: #EADFC4; --me: #F6D77A; --bean: #F1EBDC; --accent: #3E7B4F;
     --field: #fff; --hover: #EFE8D6; --warnbg: #FFF6E0; --meText: var(--fg); --fs: 13.5px;
     --font: ui-rounded, "SF Pro Rounded", system-ui, -apple-system, sans-serif; --replyFont: var(--font);
   }
   @media (prefers-color-scheme: dark) {
-    :root { --card: #23221D; --fg: #ECE7DA; --muted: #A39E8F; --line: #3A372F; --me: #5C4E1E; --luna: #2E2C25; --accent: #6DBA80; --field: #1B1A16; --hover: #34312A; --warnbg: #3A3020; }
+    :root { --card: #23221D; --fg: #ECE7DA; --muted: #A39E8F; --line: #3A372F; --me: #5C4E1E; --bean: #2E2C25; --accent: #6DBA80; --field: #1B1A16; --hover: #34312A; --warnbg: #3A3020; }
   }
-  :root[data-style="claude"] { --card: #FAF9F5; --fg: #141413; --muted: #73726C; --line: #E5E3DA; --me: #F0EEE6; --luna: transparent; --accent: #C96442; --field: #fff; --hover: #EFEDE5; --warnbg: #FBF1E6;
+  :root[data-style="claude"] { --card: #FAF9F5; --fg: #141413; --muted: #73726C; --line: #E5E3DA; --me: #F0EEE6; --bean: transparent; --accent: #C96442; --field: #fff; --hover: #EFEDE5; --warnbg: #FBF1E6;
     --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif; --replyFont: "Iowan Old Style", "Charter", Georgia, serif; }
   @media (prefers-color-scheme: dark) {
-    :root[data-style="claude"] { --card: #262624; --fg: #F5F4EE; --muted: #A6A39A; --line: #3B3A36; --me: #141413; --luna: transparent; --accent: #D97757; --field: #30302E; --hover: #34332F; --warnbg: #3A2F25; }
+    :root[data-style="claude"] { --card: #262624; --fg: #F5F4EE; --muted: #A6A39A; --line: #3B3A36; --me: #141413; --bean: transparent; --accent: #D97757; --field: #30302E; --hover: #34332F; --warnbg: #3A2F25; }
   }
   :root[data-font="system"] { --font: -apple-system, BlinkMacSystemFont, system-ui, sans-serif; --replyFont: var(--font); }
   :root[data-font="serif"] { --replyFont: "Iowan Old Style", Georgia, serif; }
   :root[data-font="readable"] { --font: Verdana, Tahoma, sans-serif; --replyFont: var(--font); }
   :root[data-font="readable"] .msg { letter-spacing: 0.02em; word-spacing: 0.08em; line-height: 1.65; }
-  :root[data-style="claude"] .msg.luna { padding-left: 2px; }
+  :root[data-style="claude"] .msg.bean { padding-left: 2px; }
   :root[data-style="claude"] #chat { border-radius: 16px; }
-  .msg.luna { font-family: var(--replyFont); }
+  .msg.bean { font-family: var(--replyFont); }
   html, body { margin: 0; height: 100%; background: transparent; overflow: hidden; font-family: var(--font); color: var(--fg); }
   #pet { position: absolute; left: 0; top: 0; width: 440px; height: 440px; }
   #pet canvas { display: block; width: 100%; height: 100%; }
@@ -64,7 +64,7 @@
   #chat.full #log, #chat.full .chips, #chat.full form, #chat.full #mictip { width: min(760px, calc(100% - 48px)); margin: 0 auto; box-sizing: border-box; }
   #chat.full #log { padding: 24px 4px; gap: 10px; }
   #chat.full .msg { font-size: 15.5px; line-height: 1.6; max-width: 100%; }
-  #chat.full .msg.luna { background: transparent; padding-left: 0; }
+  #chat.full .msg.bean { background: transparent; padding-left: 0; }
   #chat.full .msg.me { max-width: 75%; }
   #chat.full form { border: 1px solid var(--line); border-radius: 22px; margin-bottom: 22px; padding: 10px; background: var(--field); box-shadow: 0 4px 18px rgba(40,30,10,0.07); }
   #chat.full form input { border: 0; font-size: 15.5px; }
@@ -82,7 +82,7 @@
   #log { flex: 1; overflow-y: auto; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; min-height: 60px; }
   .msg { max-width: 85%; padding: 7px 11px; border-radius: 14px; font-size: var(--fs); line-height: 1.45; white-space: pre-wrap; word-wrap: break-word; }
   .msg.me { align-self: flex-end; background: var(--me); color: var(--meText); border-bottom-right-radius: 4px; }
-  .msg.luna { align-self: flex-start; background: var(--luna); border-bottom-left-radius: 4px; }
+  .msg.bean { align-self: flex-start; background: var(--bean); border-bottom-left-radius: 4px; }
   .msg.wait { color: var(--muted); font-style: italic; }
   .acts { display: flex; flex-wrap: wrap; gap: 6px; align-self: flex-start; max-width: 92%; }
   .acts button { font: 700 12px var(--font); border: 1px solid var(--accent); color: var(--accent); background: var(--field); border-radius: 999px; padding: 5px 10px; cursor: pointer; }
@@ -119,7 +119,7 @@
   html.standalone #chat { position: fixed; inset: 0; width: auto; height: auto; max-height: none; border: 0; border-radius: 0; box-shadow: none; }
   html.standalone #chat .head { padding: 12px 16px 10px 84px; -webkit-app-region: drag; }
   html.standalone #chat .head button { -webkit-app-region: no-drag; }
-  /* friendly formatting in luna's replies */
+  /* friendly formatting in bean's replies */
   .msg.md { white-space: normal; }
   .msg.md p { margin: 0 0 6px; } .msg.md p:last-child { margin-bottom: 0; }
   .msg.md h3, .msg.md h4, .msg.md h5, .msg.md h6 { margin: 8px 0 4px; font-size: 1.02em; }
@@ -162,12 +162,12 @@
 </head>
 <body>
   <div id="pet">
-    <canvas id="c" aria-label="Luna the gecko"></canvas>
+    <canvas id="c" aria-label="Bean the gecko"></canvas>
     <div class="bubble" id="bubble" hidden></div>
   </div>
 
   <div id="chat" hidden>
-    <div class="head"><div class="lights"><button id="close" class="l red" title="close"><span>×</span></button><button id="min" class="l yellow" title="minimize"><span>−</span></button><button id="full" class="l green" title="enter full screen"><span><svg width="7" height="7" viewBox="0 0 10 10"><path d="M1 4V1h3M9 6v3H6" fill="none" stroke="rgba(0,0,0,.6)" stroke-width="1.6"/></svg></span></button></div><span class="title"><span id="charIcon">🦎</span> <b id="charName">luna</b></span><button id="settings" class="icon" title="settings"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button><button id="reset" class="icon" title="new chat"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg></button></div>
+    <div class="head"><div class="lights"><button id="close" class="l red" title="close"><span>×</span></button><button id="min" class="l yellow" title="minimize"><span>−</span></button><button id="full" class="l green" title="enter full screen"><span><svg width="7" height="7" viewBox="0 0 10 10"><path d="M1 4V1h3M9 6v3H6" fill="none" stroke="rgba(0,0,0,.6)" stroke-width="1.6"/></svg></span></button></div><span class="title"><span id="charIcon">🦎</span> <b id="charName">bean</b></span><button id="settings" class="icon" title="settings"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button><button id="reset" class="icon" title="new chat"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg></button></div>
     <div id="hello" hidden><div class="hi-icon" id="helloIcon">🦎</div><h1 id="helloText">good evening</h1><p>ask anything, or tell me what to do.</p></div>
     <div id="log"></div>
     <div class="chips">
@@ -175,10 +175,10 @@
       <button data-q="what's due this week?">what's due</button>
       <button data-q="how am i doing on my goals?">my goals</button>
     </div>
-    <form id="f"><button type="button" id="mic" title="talk instead of typing"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="12" rx="3"/><path d="M5 10.5a7 7 0 0 0 14 0"/><path d="M12 17.5v3.5"/></svg></button><input id="q" placeholder="talk to luna..." autocomplete="off"><button id="send">send</button></form>
+    <form id="f"><button type="button" id="mic" title="talk instead of typing"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="12" rx="3"/><path d="M5 10.5a7 7 0 0 0 14 0"/><path d="M12 17.5v3.5"/></svg></button><input id="q" placeholder="talk to bean..." autocomplete="off"><button id="send">send</button></form>
     <div id="mictip" hidden>listening… hold <b>fn</b> to talk with Wispr Flow (or press fn twice for Mac dictation). it sends when you stop.</div>
   </div>
-  <button id="pill" hidden><span id="pillIcon">🦎</span> <span id="pillText">luna</span><i id="pillDot" hidden></i></button>
+  <button id="pill" hidden><span id="pillIcon">🦎</span> <span id="pillText">bean</span><i id="pillDot" hidden></i></button>
 
   <script src="vendor/three.min.js"></script>
   <script src="vendor/GLTFLoader.js"></script>

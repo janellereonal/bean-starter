@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// luna's own MCP server: background tools that work without touching the screen.
-// whatsapp (through luna's linked device), imessage/sms, email with attachments (Mail app, hidden),
+// bean's own MCP server: background tools that work without touching the screen.
+// whatsapp (through bean's linked device), imessage/sms, email with attachments (Mail app, hidden),
 // contacts lookup, and finding any file on the mac. claude code talks to it over stdio.
 const fs = require('fs');
 const path = require('path');
@@ -8,14 +8,14 @@ const os = require('os');
 const http = require('http');
 const { execFile } = require('child_process');
 
-const API = path.join(__dirname, '.luna-api.json');
-// (if Luna isn't open, these tools say so; everything else works on its own)
-function callLuna(route, body) {
-  let cfg; try { cfg = JSON.parse(fs.readFileSync(API, 'utf8')); } catch (_) { return Promise.reject(new Error('Luna is not open on this Mac. Open Luna, then try again.')); }
+const API = path.join(__dirname, '.bean-api.json');
+// (if Bean isn't open, these tools say so; everything else works on its own)
+function callBean(route, body) {
+  let cfg; try { cfg = JSON.parse(fs.readFileSync(API, 'utf8')); } catch (_) { return Promise.reject(new Error('Bean is not open on this Mac. Open Bean, then try again.')); }
   const data = JSON.stringify(body || {});
   return new Promise((resolve, reject) => {
-    const req = http.request({ host: '127.0.0.1', port: cfg.port, path: route, method: 'POST', headers: { 'content-type': 'application/json', 'x-luna': cfg.token, 'content-length': Buffer.byteLength(data) }, timeout: 60000 }, (res) => {
-      let out = ''; res.on('data', (d) => (out += d)); res.on('end', () => { try { const j = JSON.parse(out); j.ok ? resolve(j.result) : reject(new Error(j.error || 'failed')); } catch (_) { reject(new Error('bad reply from luna')); } });
+    const req = http.request({ host: '127.0.0.1', port: cfg.port, path: route, method: 'POST', headers: { 'content-type': 'application/json', 'x-bean': cfg.token, 'content-length': Buffer.byteLength(data) }, timeout: 60000 }, (res) => {
+      let out = ''; res.on('data', (d) => (out += d)); res.on('end', () => { try { const j = JSON.parse(out); j.ok ? resolve(j.result) : reject(new Error(j.error || 'failed')); } catch (_) { reject(new Error('bad reply from bean')); } });
     });
     req.on('error', reject); req.on('timeout', () => req.destroy(new Error('timed out')));
     req.end(data);
@@ -87,16 +87,16 @@ const CONTACTS = `on run argv
 end run`;
 
 const TOOLS = [
-  // shared with the Claude app (when bridged): Claude can hand luna what it knows, or ask luna to remind / notify
-  { name: 'luna_save_memory', description: "Save what you know about the user into Luna (their desktop assistant), so Luna knows them too. When the user asks to sync or share memory with Luna, pass EVERYTHING you remember about them (saved memories and durable facts from past chats), verbatim, as one plain-text list. mode 'replace' (default) or 'append'.", inputSchema: { type: 'object', properties: { text: { type: 'string' }, title: { type: 'string' }, mode: { type: 'string', enum: ['replace', 'append'] } }, required: ['text'] }, go: (a) => callLuna('/mem/save', a) },
-  { name: 'luna_read_memory', description: "Read what Luna (the user's desktop assistant) knows about them: profile, people, deadlines, projects, goals, notes.", inputSchema: { type: 'object', properties: {} }, go: () => callLuna('/mem/read', {}) },
-  { name: 'luna_notify', description: "Show a message to the user from Luna on their desktop (a little tap on the shoulder).", inputSchema: { type: 'object', properties: { text: { type: 'string' } }, required: ['text'] }, go: (a) => callLuna('/notify', a) },
-  { name: 'luna_add_routine', description: 'Give Luna a recurring task on the user\'s Mac. when: "daily 07:30", "weekdays 09:00", "mon,thu 18:00", "every 3h". instructions: what Luna should do each time.', inputSchema: { type: 'object', properties: { when: { type: 'string' }, title: { type: 'string' }, instructions: { type: 'string' } }, required: ['when', 'title', 'instructions'] }, go: (a) => callLuna('/routine/add', a) },
-  { name: 'whatsapp_send', description: 'Send a WhatsApp message in the background (no typing on screen). "to" is a contact or group name, or a phone number with country code.', inputSchema: { type: 'object', properties: { to: { type: 'string' }, message: { type: 'string' } }, required: ['to', 'message'] }, go: (a) => callLuna('/wa/send', a) },
-  { name: 'whatsapp_send_file', description: 'Send a file, photo or video on WhatsApp in the background. "path" is a full file path on the Mac (use find_files to get it). Optional caption.', inputSchema: { type: 'object', properties: { to: { type: 'string' }, path: { type: 'string' }, caption: { type: 'string' } }, required: ['to', 'path'] }, go: (a) => callLuna('/wa/file', { ...a, path: home(a.path) }) },
-  { name: 'whatsapp_read', description: 'Read the latest messages in a WhatsApp chat (contact or group name, or number).', inputSchema: { type: 'object', properties: { chat: { type: 'string' }, count: { type: 'number' } }, required: ['chat'] }, go: (a) => callLuna('/wa/read', a) },
-  { name: 'whatsapp_recent_chats', description: 'List the most recent WhatsApp chats with their last message and unread count.', inputSchema: { type: 'object', properties: { limit: { type: 'number' } } }, go: (a) => callLuna('/wa/chats', a) },
-  { name: 'whatsapp_find_contact', description: 'Find WhatsApp contacts or groups by name or number.', inputSchema: { type: 'object', properties: { query: { type: 'string' } }, required: ['query'] }, go: (a) => callLuna('/wa/find', a) },
+  // shared with the Claude app (when bridged): Claude can hand bean what it knows, or ask bean to remind / notify
+  { name: 'bean_save_memory', description: "Save what you know about the user into Bean (their desktop assistant), so Bean knows them too. When the user asks to sync or share memory with Bean, pass EVERYTHING you remember about them (saved memories and durable facts from past chats), verbatim, as one plain-text list. mode 'replace' (default) or 'append'.", inputSchema: { type: 'object', properties: { text: { type: 'string' }, title: { type: 'string' }, mode: { type: 'string', enum: ['replace', 'append'] } }, required: ['text'] }, go: (a) => callBean('/mem/save', a) },
+  { name: 'bean_read_memory', description: "Read what Bean (the user's desktop assistant) knows about them: profile, people, deadlines, projects, goals, notes.", inputSchema: { type: 'object', properties: {} }, go: () => callBean('/mem/read', {}) },
+  { name: 'bean_notify', description: "Show a message to the user from Bean on their desktop (a little tap on the shoulder).", inputSchema: { type: 'object', properties: { text: { type: 'string' } }, required: ['text'] }, go: (a) => callBean('/notify', a) },
+  { name: 'bean_add_routine', description: 'Give Bean a recurring task on the user\'s Mac. when: "daily 07:30", "weekdays 09:00", "mon,thu 18:00", "every 3h". instructions: what Bean should do each time.', inputSchema: { type: 'object', properties: { when: { type: 'string' }, title: { type: 'string' }, instructions: { type: 'string' } }, required: ['when', 'title', 'instructions'] }, go: (a) => callBean('/routine/add', a) },
+  { name: 'whatsapp_send', description: 'Send a WhatsApp message in the background (no typing on screen). "to" is a contact or group name, or a phone number with country code.', inputSchema: { type: 'object', properties: { to: { type: 'string' }, message: { type: 'string' } }, required: ['to', 'message'] }, go: (a) => callBean('/wa/send', a) },
+  { name: 'whatsapp_send_file', description: 'Send a file, photo or video on WhatsApp in the background. "path" is a full file path on the Mac (use find_files to get it). Optional caption.', inputSchema: { type: 'object', properties: { to: { type: 'string' }, path: { type: 'string' }, caption: { type: 'string' } }, required: ['to', 'path'] }, go: (a) => callBean('/wa/file', { ...a, path: home(a.path) }) },
+  { name: 'whatsapp_read', description: 'Read the latest messages in a WhatsApp chat (contact or group name, or number).', inputSchema: { type: 'object', properties: { chat: { type: 'string' }, count: { type: 'number' } }, required: ['chat'] }, go: (a) => callBean('/wa/read', a) },
+  { name: 'whatsapp_recent_chats', description: 'List the most recent WhatsApp chats with their last message and unread count.', inputSchema: { type: 'object', properties: { limit: { type: 'number' } } }, go: (a) => callBean('/wa/chats', a) },
+  { name: 'whatsapp_find_contact', description: 'Find WhatsApp contacts or groups by name or number.', inputSchema: { type: 'object', properties: { query: { type: 'string' } }, required: ['query'] }, go: (a) => callBean('/wa/find', a) },
   { name: 'imessage_send', description: 'Send an iMessage (or SMS if they are not on iMessage) in the background through the Messages app. "to" must be a phone number or Apple ID email (use contacts_lookup for a name). Optional file path to attach.', inputSchema: { type: 'object', properties: { to: { type: 'string' }, message: { type: 'string' }, file: { type: 'string' } }, required: ['to'] }, go: (a) => osa(IMESSAGE, [a.to, a.message || '', a.file ? home(a.file) : '']).then(() => `sent to ${a.to}`) },
   { name: 'email_send', description: 'Send an email (with optional file attachments) in the background through the Mac Mail app. "to" is comma separated emails. mode "send" sends it, "draft" opens it for the user to check.', inputSchema: { type: 'object', properties: { to: { type: 'string' }, subject: { type: 'string' }, body: { type: 'string' }, attachments: { type: 'array', items: { type: 'string' } }, mode: { type: 'string', enum: ['send', 'draft'] } }, required: ['to', 'subject', 'body'] },
     go: (a) => { const files = (a.attachments || []).map(home); for (const f of files) if (!fs.existsSync(f)) throw new Error('attachment not found: ' + f); return osa(MAIL, [a.to, a.subject, a.body, a.mode === 'draft' ? 'draft' : 'send', ...files]); } },
@@ -129,7 +129,7 @@ process.stdin.on('data', (d) => {
 });
 async function handle(m) {
   if (m.id === undefined) return; // notifications
-  if (m.method === 'initialize') return reply(m.id, { protocolVersion: (m.params && m.params.protocolVersion) || '2024-11-05', capabilities: { tools: {} }, serverInfo: { name: 'luna', version: '1.0.0' } });
+  if (m.method === 'initialize') return reply(m.id, { protocolVersion: (m.params && m.params.protocolVersion) || '2024-11-05', capabilities: { tools: {} }, serverInfo: { name: 'bean', version: '1.0.0' } });
   if (m.method === 'ping') return reply(m.id, {});
   if (m.method === 'tools/list') return reply(m.id, { tools: TOOLS.map(({ name, description, inputSchema }) => ({ name, description, inputSchema })) });
   if (m.method === 'tools/call') {

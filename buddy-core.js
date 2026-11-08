@@ -1,4 +1,4 @@
-// custom characters: bring a 2D picture to life (or load a 3D model) and animate it like luna.
+// custom characters: bring a 2D picture to life (or load a 3D model) and animate it like bean.
 // used by the desktop (buddy.js) and by the live preview in settings.
 //
 // a picture is turned into a soft puppet: a fine mesh laid over the image that bends at the joints

@@ -1,11 +1,11 @@
 // chat panel + click-through handling for the transparent desktop window
 (function () {
-  const bridge = window.luna || {
+  const bridge = window.bean || {
     // browser preview fallback
     ask: async (t) => ({ ok: true, text: 'preview mode hehe, on your mac i answer for real (you said: ' + t + ')' }),
     reset: async () => {}, setInteractive: () => {}, menu: () => {}, focus: () => {}
   };
-  // the same chat runs in two places: the little window by luna, and her own full window (?standalone=1)
+  // the same chat runs in two places: the little window by bean, and her own full window (?standalone=1)
   const STANDALONE = /standalone=1/.test(location.search);
   if (STANDALONE) document.documentElement.classList.add('standalone');
   const pet = document.getElementById('pet');
@@ -21,15 +21,15 @@
     interactive = on;
     bridge.setInteractive(on);
   }
-  // the window ignores clicks except over luna or the open chat
+  // the window ignores clicks except over bean or the open chat
   document.addEventListener('mousemove', (e) => {
     if (STANDALONE) return;
-    const overPet = window.LUNA && window.LUNA.hitAt(e.clientX, e.clientY);
+    const overPet = window.BEAN && window.BEAN.hitAt(e.clientX, e.clientY);
     const r = chat.getBoundingClientRect();
     const overChat = !chat.hidden && e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
     const pl = document.getElementById('pill'), q = pl.getBoundingClientRect();
     const overPill = !pl.hidden && e.clientX >= q.left && e.clientX <= q.right && e.clientY >= q.top && e.clientY <= q.bottom;
-    setInteractive(Boolean(overPet || overChat || overPill || window.LUNA_DRAGGING));
+    setInteractive(Boolean(overPet || overChat || overPill || window.BEAN_DRAGGING));
   });
 
   function place() {
@@ -49,21 +49,21 @@
     d.className = 'msg ' + who;
     setText(d, text, who);
     log.appendChild(d);
-    if (/\bluna\b/.test(who) && !/wait/.test(who)) addSay(d);
+    if (/\bbean\b/.test(who) && !/wait/.test(who)) addSay(d);
     log.scrollTop = log.scrollHeight;
     return d;
   }
 
-  // luna's messages get friendly formatting (lists, bold, tables, agenda / task / file cards)
+  // bean's messages get friendly formatting (lists, bold, tables, agenda / task / file cards)
   function setText(d, text, who) {
     d.dataset.raw = text;
-    if (/\bluna\b/.test(who || d.className) && !/wait/.test(who || d.className) && window.LunaMD) LunaMD.render(d, text);
+    if (/\bbean\b/.test(who || d.className) && !/wait/.test(who || d.className) && window.BeanMD) BeanMD.render(d, text);
     else d.textContent = text;
   }
   function openChat() {
     chat.hidden = false;
-    window.LUNA_CHATTING = true;
-    if (!log.children.length) add('luna', `hiii${cfg.userName ? ' ' + cfg.userName.toLowerCase() : ''}! what do you need? ${cfg.charIcon || '🦎'}`);
+    window.BEAN_CHATTING = true;
+    if (!log.children.length) add('bean', `hiii${cfg.userName ? ' ' + cfg.userName.toLowerCase() : ''}! what do you need? ${cfg.charIcon || '🦎'}`);
     pill.hidden = true; minimized = false;
     updateHello();
     place();
@@ -72,11 +72,11 @@
   }
   function closeChat() {
     chat.hidden = true;
-    window.LUNA_CHATTING = false;
+    window.BEAN_CHATTING = false;
     setInteractive(false);
   }
 
-  // luna ends replies with suggested actions written as [[do: label | what to do]]; show them as buttons
+  // bean ends replies with suggested actions written as [[do: label | what to do]]; show them as buttons
   const ACT = /\[\[do:\s*([^|\]]+?)\s*\|\s*([^\]]+?)\s*\]\]/g;
   const clean = (t) => t.replace(ACT, '').replace(/\[\[[^\]]*$/, '').replace(/^\s+/, '').replace(/\s+$/, '');
   function addActions(actions) {
@@ -97,16 +97,16 @@
   }
   function actionsFrom(text) { const out = []; let m; ACT.lastIndex = 0; while ((m = ACT.exec(text))) out.push({ label: m[1], prompt: m[2] }); return out; }
 
-  // proactive check-ins: luna waves and says something; tap her to see it with action buttons
+  // proactive check-ins: bean waves and says something; tap her to see it with action buttons
   if (bridge.onNudge) bridge.onNudge((n) => {
     if (!n || !n.text) return;
-    const d = add('luna nudge', n.text);
+    const d = add('bean nudge', n.text);
     if (minimized) pillDot.hidden = false;
     addActions(n.actions);
     speak(n.text);
     if (chat.hidden) {
-      window.LUNA && window.LUNA.say('psst! ' + (n.text.length > 42 ? n.text.slice(0, 40) + '…' : n.text), 20);
-      window.LUNA && window.LUNA.setMode('wave');
+      window.BEAN && window.BEAN.say('psst! ' + (n.text.length > 42 ? n.text.slice(0, 40) + '…' : n.text), 20);
+      window.BEAN && window.BEAN.setMode('wave');
     }
     return d;
   });
@@ -125,11 +125,11 @@
     yes.onclick = () => answer(true); no.onclick = () => answer(false);
     card.append(yes, no);
     log.appendChild(card); log.scrollTop = log.scrollHeight;
-    window.LUNA && window.LUNA.say('need your ok! 🛡️', 15);
+    window.BEAN && window.BEAN.say('need your ok! 🛡️', 15);
     speak('i need your ok for this one');
   });
 
-  // luna can read her replies out loud (toggle in the 🦎 menu)
+  // bean can read her replies out loud (toggle in the 🦎 menu)
   let voiceOn = false; // auto-read is off unless turned on in the 🦎 menu
   if (bridge.onVoice) bridge.onVoice((v) => { voiceOn = v; if (!v) speechSynthesis.cancel(); });
   function speak(t, force) {
@@ -141,8 +141,8 @@
     u.rate = 1.05; u.pitch = 1.15;
     speechSynthesis.speak(u);
   }
-  // 🔊 on each of luna's messages: tap to hear it
-  // listen + copy buttons under each of luna's messages
+  // 🔊 on each of bean's messages: tap to hear it
+  // listen + copy buttons under each of bean's messages
   const ICON_SPK = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>', ICON_CPY = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="13" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg>', ICON_CHK = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
   function addSay(d) {
     const bar = document.createElement('div'); bar.className = 'tools';
@@ -159,7 +159,7 @@
   }
 
   // 🎤 voice typing: works with Wispr Flow (hold fn) or Mac dictation (fn fn), which type into the box;
-  // when the words stop coming for a moment, luna sends it for you
+  // when the words stop coming for a moment, bean sends it for you
   const mic = document.getElementById('mic'), tip = document.getElementById('mictip');
   let listening = false, quietTimer = null;
   function setListening(on) {
@@ -181,11 +181,11 @@
   let live = null, liveText = '';
   if (bridge.onDelta) bridge.onDelta((t) => {
     if (!live) return;
-    if (!liveText) { live.classList.remove('wait'); window.LUNA && window.LUNA.hide(); window.LUNA_THINKING = false; }
-    window.LUNA_TALK_UNTIL = performance.now() + 450; // her mouth moves while words come in
+    if (!liveText) { live.classList.remove('wait'); window.BEAN && window.BEAN.hide(); window.BEAN_THINKING = false; }
+    window.BEAN_TALK_UNTIL = performance.now() + 450; // her mouth moves while words come in
     liveText += t;
     // re-render the formatting a few times a second while words stream in
-    if (!live._r) live._r = setTimeout(() => { if (live) { setText(live, clean(liveText), 'luna'); live._r = null; log.scrollTop = log.scrollHeight; } }, 70);
+    if (!live._r) live._r = setTimeout(() => { if (live) { setText(live, clean(liveText), 'bean'); live._r = null; log.scrollTop = log.scrollHeight; } }, 70);
     log.scrollTop = log.scrollHeight;
   });
   if (bridge.onStatus) bridge.onStatus((t) => { if (live && !liveText) live.textContent = t; });
@@ -200,30 +200,30 @@
     updateHello();
     document.querySelector('.chips').hidden = true;
     input.value = '';
-    live = add('luna wait', 'thinking...'); liveText = '';
-    window.LUNA && window.LUNA.say('hmm... 🤔', 120);
-    window.LUNA_THINKING = true;
+    live = add('bean wait', 'thinking...'); liveText = '';
+    window.BEAN && window.BEAN.say('hmm... 🤔', 120);
+    window.BEAN_THINKING = true;
     let res;
     try { res = await bridge.ask(text); } catch (e) { res = { ok: false, text: String(e) }; }
-    window.LUNA_THINKING = false;
+    window.BEAN_THINKING = false;
     live.classList.remove('wait');
     const full = res.ok ? (res.text || liveText) : res.text;
     clearTimeout(live._r); live._r = null;
-    setText(live, clean(full), 'luna');
-    bridge.record && bridge.record({ who: 'luna', text: full });
+    setText(live, clean(full), 'bean');
+    bridge.record && bridge.record({ who: 'bean', text: full });
     addSay(live);
     const spoken = live.textContent;
     live = null;
     if (res.ok) { addActions(actionsFrom(full)); speak(spoken); }
-    window.LUNA && window.LUNA.hide();
-    if (res.ok && window.LUNA) window.LUNA.setMode('happy');
+    window.BEAN && window.BEAN.hide();
+    if (res.ok && window.BEAN) window.BEAN.setMode('happy');
     busy = false; send.textContent = 'send'; send.classList.remove('stop');
     log.scrollTop = log.scrollHeight;
     input.focus();
   }
 
   // ---------- window buttons ----------
-  // tap luna: the little chat. green: her own full-screen window. yellow: shrink to a pill. red: the chat is gone.
+  // tap bean: the little chat. green: her own full-screen window. yellow: shrink to a pill. red: the chat is gone.
   const pill = document.getElementById('pill'), pillDot = document.getElementById('pillDot');
   let minimized = false;
   const anim = (el, from, to, ms) => el.animate([from, to], { duration: ms, easing: 'cubic-bezier(.3,.7,.2,1)' }).finished.catch(() => {});
@@ -236,7 +236,7 @@
     if (chat.hidden) return;
     chat.style.transformOrigin = originAtPet();
     await anim(chat, { transform: 'scale(1)', opacity: 1 }, { transform: 'scale(0.08)', opacity: 0 }, 260);
-    chat.hidden = true; window.LUNA_CHATTING = false; minimized = true;
+    chat.hidden = true; window.BEAN_CHATTING = false; minimized = true;
     pill.hidden = false; pillDot.hidden = true; placePill();
     anim(pill, { transform: 'scale(0.4)', opacity: 0 }, { transform: 'scale(1)', opacity: 1 }, 220);
     setInteractive(false);
@@ -251,22 +251,22 @@
     if (pill.hidden) return;
     const pr = pet.getBoundingClientRect();
     pill.style.left = Math.max(8, Math.min(window.innerWidth - pill.offsetWidth - 8, pr.left + pr.width / 2 - pill.offsetWidth / 2)) + 'px';
-    const hp = window.LUNA_BUDDY && window.LUNA_BUDDY.active() && window.LUNA_BUDDY.headPoint();
+    const hp = window.BEAN_BUDDY && window.BEAN_BUDDY.active() && window.BEAN_BUDDY.headPoint();
     pill.style.top = Math.max(8, (hp ? pr.top + hp.y - 44 : pr.top + 70)) + 'px'; // just above her head
   }
   if (!STANDALONE) setInterval(placePill, 150);
   pill.addEventListener('click', () => restore());
   // green (or double-click the title bar): open her own window, full screen
-  function bigWindow() { chat.hidden = true; window.LUNA_CHATTING = false; pill.hidden = true; minimized = false; setInteractive(false); bridge.openWindow && bridge.openWindow(); }
-  // tapping luna: the little chat (or her own window, if you chose that in settings)
-  window.addEventListener('luna-tap', () => { if (!chat.hidden) closeChat(); else if (cfg.tapOpens === 'full') bigWindow(); else restore(); });
-  window.addEventListener('luna-menu', () => bridge.menu());
-  if (bridge.onRoam) bridge.onRoam((r) => window.LUNA && window.LUNA.setRoam(r));
+  function bigWindow() { chat.hidden = true; window.BEAN_CHATTING = false; pill.hidden = true; minimized = false; setInteractive(false); bridge.openWindow && bridge.openWindow(); }
+  // tapping bean: the little chat (or her own window, if you chose that in settings)
+  window.addEventListener('bean-tap', () => { if (!chat.hidden) closeChat(); else if (cfg.tapOpens === 'full') bigWindow(); else restore(); });
+  window.addEventListener('bean-menu', () => bridge.menu());
+  if (bridge.onRoam) bridge.onRoam((r) => window.BEAN && window.BEAN.setRoam(r));
   document.getElementById('close').addEventListener('click', async () => {
     if (busy) await bridge.stop();
     if (listening) setListening(false);
     await anim(chat, { transform: 'scale(1)', opacity: 1 }, { transform: 'scale(0.96)', opacity: 0 }, 160);
-    closeChat(); pill.hidden = true; minimized = false; // gone. tap luna to bring the little chat back
+    closeChat(); pill.hidden = true; minimized = false; // gone. tap bean to bring the little chat back
   });
   document.getElementById('min').addEventListener('click', minimize);
   document.getElementById('full').addEventListener('click', bigWindow);
@@ -275,8 +275,8 @@
   // ---------- one conversation in both places ----------
   function showSynced(m) {
     if (m.who === 'me') add('me', m.text);
-    else if (/nudge/.test(m.who)) { add('luna nudge', m.text); addActions(m.actions); }
-    else { add('luna', clean(m.text)); addActions(actionsFrom(m.text)); }
+    else if (/nudge/.test(m.who)) { add('bean nudge', m.text); addActions(m.actions); }
+    else { add('bean', clean(m.text)); addActions(actionsFrom(m.text)); }
     document.querySelector('.chips').hidden = true;
     updateHello();
   }
@@ -289,13 +289,13 @@
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && chat.classList.contains('full')) { e.stopImmediatePropagation(); document.getElementById('full').click(); } }, true);
 
   // ---------- name, character and greeting from settings ----------
-  let cfg = { userName: '', charName: 'luna', charIcon: '🦎', tapOpens: 'small' };
+  let cfg = { userName: '', charName: 'bean', charIcon: '🦎', tapOpens: 'small' };
   function applyCfg(c) {
     cfg = { ...cfg, ...(c || {}) };
-    document.getElementById('charName').textContent = cfg.charName || 'luna';
+    document.getElementById('charName').textContent = cfg.charName || 'bean';
     for (const id of ['charIcon', 'helloIcon', 'pillIcon']) document.getElementById(id).textContent = cfg.charIcon || '🦎';
-    document.getElementById('pillText').textContent = cfg.charName || 'luna';
-    input.placeholder = `talk to ${cfg.charName || 'luna'}...`;
+    document.getElementById('pillText').textContent = cfg.charName || 'bean';
+    input.placeholder = `talk to ${cfg.charName || 'bean'}...`;
     updateHello();
   }
   function updateHello() {
@@ -310,7 +310,7 @@
   function applyTheme(th) {
     th = th || {};
     const root = document.documentElement;
-    root.dataset.style = th.style === 'claude' ? 'claude' : 'luna';
+    root.dataset.style = th.style === 'claude' ? 'claude' : 'bean';
     root.dataset.font = th.font || 'default';
     root.style.setProperty('--fs', ({ small: '12.5px', large: '15px', xl: '16.5px' })[th.size] || '13.5px');
     for (const v of ['--accent', '--me', '--meText']) root.style.removeProperty(v);
@@ -326,7 +326,7 @@
     await bridge.reset();
     log.innerHTML = '';
     document.querySelector('.chips').hidden = false;
-    add('luna', 'fresh start! what’s up?');
+    add('bean', 'fresh start! what’s up?');
   });
   document.querySelectorAll('.chips button').forEach((b) => b.addEventListener('click', () => ask(b.dataset.q)));
   // while she's working: the button becomes "stop". typing something new stops her and redirects her.

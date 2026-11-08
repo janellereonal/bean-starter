@@ -4,17 +4,17 @@ const path = require('path');
 const improve = require('../lib/improve');
 
 function fakeApp() {
-  const r = fs.mkdtempSync(path.join(os.tmpdir(), 'luna-app-'));
+  const r = fs.mkdtempSync(path.join(os.tmpdir(), 'bean-app-'));
   const put = (f, t) => { fs.mkdirSync(path.dirname(path.join(r, f)), { recursive: true }); fs.writeFileSync(path.join(r, f), t); };
   put('main.js', 'one\ntwo\n'); put('lib/rules.js', 'rules'); put('tools/sentinel.js', 'sentinel'); put('lib/improve.js', 'x'); put('scripts/check.js', 'c');
-  put('me/about-me.md', 'private'); put('.whatsapp/auth/creds.json', '{}'); put('tools/.luna-api.json', '{}');
+  put('me/about-me.md', 'private'); put('.whatsapp/auth/creds.json', '{}'); put('tools/.bean-api.json', '{}');
   return { r, put };
 }
 test('snapshots only code, never personal files', () => {
   const { r } = fakeApp();
   const files = improve.codeFiles(r);
   assert.ok(files.includes('main.js') && files.includes('lib/rules.js'));
-  assert.ok(!files.some((f) => f.startsWith('me/') || f.startsWith('.whatsapp') || f === 'tools/.luna-api.json'));
+  assert.ok(!files.some((f) => f.startsWith('me/') || f.startsWith('.whatsapp') || f === 'tools/.bean-api.json'));
 });
 test('changes are listed and undo puts everything back', () => {
   const { r, put } = fakeApp();
